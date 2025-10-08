@@ -1,4 +1,10 @@
 #include<iostream>
+#include <sstream>
+#include <fstream>
+#include <fcntl.h>
+#include<cctype>
+#include<sys/types.h>
+#include<sys/wait.h>
 using namespace std;
 
 string stripANSI(const string &s)
@@ -8,48 +14,87 @@ string stripANSI(const string &s)
 }
 
 vector<string> execCommand(const string &cmd)
-{
-    if (cmd.empty()) return {""};
+{   
 
-    FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return {"Error: failed to run command\n"};
+    cout<<"lund";
+    if (cmd.empty())
+        return {""};
 
-    string result;
-    char buffer[256];
-
-    while (fgets(buffer, sizeof(buffer), pipe))
-        result += buffer;
-
-    pclose(pipe);
-
-    // Remove ANSI sequences
-    result = stripANSI(result);
-
-    // Keep only printable + newline
-    vector<string> cleaned;
-    string clean = "";
-    for (char c : result)
+    // Handle built-in 'cd'
+    if (cmd.rfind("cd ", 0) == 0)
     {
-        if (c == '\n' || c == '\r' || (c >= 32 && c < 127))
-        {   
-            if (c == '\r'){
-                clean.push_back(' ');
-                continue;
-            }
-            else if(c == '\n')
-            {
-                cleaned.push_back(clean);
-                clean = "";
-                continue;
-            }
-            clean.push_back(c);
-        }
+        string path = cmd.substr(3);
+        if (chdir(path.c_str()) != 0)
+            return {"cd: failed to change directory\n"};
+        return {""};
     }
-    cleaned.push_back(clean);
+    if (cmd == "cd" || cmd == "cd ~")
+    {
+        chdir(getenv("HOME"));
+        return {""};
+    }
 
-    return cleaned;
+    // Tokenize command
+    vector<string> args;
+    istringstream iss(cmd);
+    string token;
+    while (iss >> token)
+        args.push_back(token);
+    if (args.empty())
+        return {""};
+
+    vector<char *> argv;
+    for (auto &a : args)
+        argv.push_back(&a[0]);
+    argv.push_back(nullptr);
+
+    // Temporary file for output
+    const char *tempFile = "/tmp/cmd_output.txt";
+
+    pid_t pid = fork();
+
+    if (pid == 0)
+    {
+        // Child: redirect stdout + stderr to file
+        int fd = open(tempFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd < 0)
+        {
+            perror("open failed");
+            _exit(1);
+        }
+
+        dup2(fd, STDOUT_FILENO);
+        dup2(fd, STDERR_FILENO);
+        close(fd);
+
+        execvp(argv[0], argv.data());
+
+        perror("exec failed");
+        _exit(1);
+    }
+    else if (pid > 0)
+    {
+        // Parent waits
+        wait(NULL);
+        ifstream file(tempFile);
+        vector<string> lines;
+        string line;
+
+        while (getline(file, line))
+        {
+            lines.push_back(line);
+        }
+
+        file.close();
+        return lines;
+    }
+    else
+    {
+        return {"fork failed\n"};
+    }
 }
 
+using namespace std;
 string getPWD()
 {
     char cwd[512];
@@ -57,6 +102,10 @@ string getPWD()
     if (getcwd(cwd, sizeof(cwd)) != nullptr)
     {
         currentDir = string(cwd);
+    }
+    if (currentDir.size() < 15)
+    {
+        return currentDir;
     }
     return currentDir.substr(15);
 }

@@ -307,7 +307,11 @@ static void run(Window win)
                         if (wbuf[0] == L'\r' || wbuf[0] == L'\n') {
                             vector<string> outputs = execCommand(input); // returns vector<string>
                             input.clear();
-                            for (const auto &line : outputs) screenBuffer.push_back(line);
+                            for (const auto &line : outputs)
+                            {
+                                screenBuffer.push_back(line);
+                                cout<<line;
+                            }
                             screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
                             totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
