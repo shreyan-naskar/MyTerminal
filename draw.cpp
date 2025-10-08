@@ -73,7 +73,7 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         colorsInit = true;
     }
 
-    const string promptPrefix = "shre@Term:~"; // your prompt prefix
+    const string promptPrefix = "shre@Term:"; // your prompt prefix
 
     // Build wrapped display lines as before
     struct DisplayLine { string text; int promptChars; };

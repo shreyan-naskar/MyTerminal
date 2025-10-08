@@ -43,7 +43,10 @@ static void run(Window win)
         font = XLoadQueryFont(dpy, "fixed");
 
     vector<string> screenBuffer;
-    screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+    if (getPWD() == "/")
+        screenBuffer.push_back("shre@Term:" + getPWD() + "$ ");
+    else
+        screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
     GC gc = XCreateGC(dpy, win, 0, nullptr);
     XSetFont(dpy, gc, font->fid);
@@ -166,7 +169,10 @@ static void run(Window win)
 
                         input = inputs[idx];
                         screenBuffer.pop_back();
-                        screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
+                        if (getPWD() == "/")
+                            screenBuffer.push_back("shre@Term:" + getPWD() + "$ " + input);
+                        else
+                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
                     }
                     break;
                 }
@@ -187,7 +193,10 @@ static void run(Window win)
                         }
 
                         screenBuffer.pop_back();
-                        screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
+                        if (getPWD() == "/")
+                            screenBuffer.push_back("shre@Term:" + getPWD() + "$ " + input);
+                        else
+                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
                     }
                     break;
                 }
@@ -227,7 +236,10 @@ static void run(Window win)
                             {
                                 // clear only the visible buffer and show single prompt line
                                 screenBuffer.clear();
-                                screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+                                if (getPWD() == "/")
+                                    screenBuffer.push_back("shre@Term:" + getPWD() + "$ ");
+                                else
+                                    screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
                                 // reset scroll to bottom (you can set to 0 if you prefer top)
                                 totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
@@ -254,7 +266,10 @@ static void run(Window win)
                             {
                                 screenBuffer.push_back(line);
                             }
-                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+                            if (getPWD() == "/")
+                                screenBuffer.push_back("shre@Term:" + getPWD() + "$ ");
+                            else
+                                screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
                             totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
 
@@ -268,7 +283,10 @@ static void run(Window win)
 
                     else if (wbuf[0] == 8 || wbuf[0] == 127)
                     { // backspace
+
                         string prompt = "shre@Term:~" + getPWD() + "$ ";
+                        if (getPWD() == "/")
+                                prompt = "shre@Term:" + getPWD() + "$ ";
                         if (!screenBuffer.empty() && screenBuffer.back().size() != prompt.size() && screenBuffer.back().size() > 1)
                         {
                             screenBuffer.back().pop_back();
@@ -284,7 +302,12 @@ static void run(Window win)
                     else
                     { // normal char
                         if (screenBuffer.empty())
-                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+                        {
+                            if (getPWD() == "/")
+                                screenBuffer.push_back("shre@Term:" + getPWD() + "$ ");
+                            else
+                                screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+                        }
                         if (wbuf[0] < 128)
                         {
                             // if (((char)wbuf[0]) != '"')
