@@ -1,5 +1,9 @@
 {
     "files.associations": {
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "cctype": "cpp",
+        "regex": "cpp",
+        "chrono": "cpp",
+        "cstdio": "cpp"
     }
 }

@@ -5,6 +5,17 @@
 #include<cctype>
 #include<sys/types.h>
 #include<sys/wait.h>
+#include <X11/Xlib.h>
+#include <X11/keysym.h>
+#include <cstdio>
+#include <err.h>
+#include <string>
+#include <chrono>
+#include <vector>
+#include <bits/stdc++.h>
+#include <unistd.h>
+#include <cctype>
+#include <regex>
 using namespace std;
 
 string stripANSI(const string &s)
@@ -66,7 +77,7 @@ vector<string> execCommand(const string &cmd)
         string line;
         while (getline(file, line))
         {
-            cout<<line;
+            // cout<<line;
             lines.push_back(line); // preserves line breaks
         }
         file.close();
