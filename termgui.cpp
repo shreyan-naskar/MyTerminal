@@ -178,20 +178,15 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     return totalLines;
 }
 
-static const int SCROLL_STEP = 10; // fine-tune
+static const int SCROLL_STEP = 3; // lines per wheel/page step
 
 static void run(Window win)
 {
-    // ensure locale is set somewhere in your program, e.g. in main():
-    // setlocale(LC_CTYPE, "");
-
     XSelectInput(dpy, win, ExposureMask | KeyPressMask | ButtonPressMask);
 
-    // Create IM and XIC (if available)
+    // --- XIM/XIC setup ---
     XIM xim = XOpenIM(dpy, nullptr, nullptr, nullptr);
-    if (!xim) {
-        std::cerr << "XOpenIM failed — continuing without input method\n";
-    }
+    if (!xim) std::cerr << "XOpenIM failed — continuing without input method\n";
 
     XIC xic = nullptr;
     if (xim) {
@@ -200,27 +195,18 @@ static void run(Window win)
                         XNClientWindow, win,
                         XNFocusWindow, win,
                         nullptr);
-        if (!xic) {
-            std::cerr << "XCreateIC failed — continuing without input context\n";
-        }
+        if (!xic) std::cerr << "XCreateIC failed — continuing without input context\n";
     }
 
-    // Load font
     XFontStruct *font = XLoadQueryFont(dpy, "12x24");
     if (!font) font = XLoadQueryFont(dpy, "fixed");
-    if (!font) {
-        std::cerr << "Failed to load font\n";
-        return;
-    }
 
-    // initial screen buffer with prompt
     vector<string> screenBuffer;
-    screenBuffer.push_back(string("shre@Term:~") + getPWD() + "$ ");
+    screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
-    // GC
     GC gc = XCreateGC(dpy, win, 0, nullptr);
     XSetFont(dpy, gc, font->fid);
-    XSetForeground(dpy, gc, WhitePixel(dpy, scr)); // default; drawScreen sets per-line colors
+    XSetForeground(dpy, gc, WhitePixel(dpy, scr)); // default
 
     XMapWindow(dpy, win);
 
@@ -228,21 +214,11 @@ static void run(Window win)
     bool showCursor = true;
     auto lastBlink = std::chrono::steady_clock::now();
     XEvent event;
-    string input;               // current command being typed
+    string input;
 
-    int scrollOffset = 0;      // in display lines (after wrapping)
-    bool userScrolled = false; // true if user moved away from bottom
+    int scrollOffset = 0;
+    bool userScrolled = false;
 
-    // helper to compute visible rows from current window
-    auto computeVisibleRows = [&](void) -> int {
-        XWindowAttributes attrs;
-        XGetWindowAttributes(dpy, win, &attrs);
-        int lineHeight = font->ascent + font->descent;
-        int visible = max(1, (attrs.height - 30) / lineHeight);
-        return visible;
-    };
-
-    // initial draw
     int totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
 
     while (running)
@@ -259,19 +235,20 @@ static void run(Window win)
 
                 case ButtonPress:
                 {
-                    // Mouse wheel: Button4 = up, Button5 = down
-                    if (event.xbutton.button == Button4) // wheel up
-                    {
+                    XWindowAttributes attrs;
+                    XGetWindowAttributes(dpy, win, &attrs);
+                    int lineHeight = font->ascent + font->descent;
+                    int visibleRows = max(1, (attrs.height - 30) / lineHeight);
+
+                    if (event.xbutton.button == Button4) { // wheel up
                         scrollOffset = max(0, scrollOffset - SCROLL_STEP);
                         userScrolled = true;
                         drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                     }
-                    else if (event.xbutton.button == Button5) // wheel down
-                    {
-                        int visibleRows = computeVisibleRows();
-                        scrollOffset = min(max(0, totalDisplayLines - visibleRows), scrollOffset + SCROLL_STEP);
-                        if (scrollOffset >= max(0, totalDisplayLines - visibleRows))
-                            userScrolled = false;
+                    else if (event.xbutton.button == Button5) { // wheel down
+                        scrollOffset = min(max(0, totalDisplayLines - visibleRows),
+                                           scrollOffset + SCROLL_STEP);
+                        if (scrollOffset >= max(0, totalDisplayLines - visibleRows)) userScrolled = false;
                         drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                     }
                     break;
@@ -279,201 +256,102 @@ static void run(Window win)
 
                 case KeyPress:
                 {
-                    // We'll produce a UTF-8 (multibyte) buffer 'mbuf' for printable input,
-                    // using XwcLookupString when xic present, otherwise falling back to keysym+name.
-                    char mbuf[256] = {0};
-                    int nbytes = 0;
+                    wchar_t wbuf[32];
                     KeySym keysym = 0;
                     Status status = 0;
+                    int len = 0;
 
-                    if (xic)
-                    {
-                        // wide-char lookup then convert to multibyte
-                        wchar_t wbuf[128] = {0};
-                        int wlen = XwcLookupString(xic, &event.xkey, wbuf, (int)(sizeof(wbuf)/sizeof(wchar_t)), &keysym, &status);
-                        if (wlen > 0)
-                        {
-                            // convert wide chars to multibyte (locale must be set)
-                            size_t conv = wcstombs(mbuf, wbuf, sizeof(mbuf)-1);
-                            if (conv == (size_t)-1) conv = 0;
-                            nbytes = (int)conv;
-                            mbuf[nbytes] = '\0';
-                        }
-                        else
-                        {
-                            nbytes = 0;
-                            mbuf[0] = '\0';
-                        }
-                    }
-                    else
-                    {
-                        // No XIC: fall back to keysym-based approach (best-effort for ASCII/printables)
-                        keysym = XLookupKeysym(&event.xkey, 0);
-
-                        if (keysym == XK_Return || keysym == XK_KP_Enter)
-                        {
-                            nbytes = 1; mbuf[0] = '\n'; mbuf[1] = '\0';
-                        }
-                        else if (keysym == XK_BackSpace)
-                        {
-                            nbytes = 1; mbuf[0] = 8; mbuf[1] = '\0';
-                        }
-                        else if (keysym == XK_Escape)
-                        {
-                            nbytes = 0; mbuf[0] = '\0';
-                        }
-                        else
-                        {
-                            const char *ksname = XKeysymToString(keysym);
-                            if (ksname && ksname[0] != '\0' && strlen(ksname) == 1) {
-                                // single-character name like "a", "A", "1"
-                                mbuf[0] = ksname[0];
-                                mbuf[1] = '\0';
-                                nbytes = 1;
-                            } else {
-                                // not a single-character name; ignore as printable
-                                nbytes = 0;
-                                mbuf[0] = '\0';
-                            }
-                        }
+                    if (xic) {
+                        len = XwcLookupString(xic, &event.xkey, wbuf, 32, &keysym, &status);
+                    } else {
+                        // Fallback: ignore input if XIC not available
+                        len = 0;
+                        keysym = event.xkey.keycode; // basic handling
                     }
 
-                    // handle navigation keys by keysym first (PageUp/PageDown/Home/End)
-                    if (keysym == XK_Page_Up)
-                    {
+                    XWindowAttributes attrs;
+                    XGetWindowAttributes(dpy, win, &attrs);
+                    int lineHeight = font->ascent + font->descent;
+                    int visibleRows = max(1, (attrs.height - 30) / lineHeight);
+
+                    // --- Scroll keys ---
+                    if (keysym == XK_Page_Up) {
                         scrollOffset = max(0, scrollOffset - SCROLL_STEP * 5);
                         userScrolled = true;
                         drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         break;
                     }
-                    else if (keysym == XK_Page_Down)
-                    {
-                        int visibleRows = computeVisibleRows();
-                        scrollOffset = min(max(0, totalDisplayLines - visibleRows), scrollOffset + SCROLL_STEP * 5);
-                        if (scrollOffset >= max(0, totalDisplayLines - visibleRows))
-                            userScrolled = false;
+                    else if (keysym == XK_Page_Down) {
+                        scrollOffset = min(max(0, totalDisplayLines - visibleRows),
+                                           scrollOffset + SCROLL_STEP * 5);
+                        if (scrollOffset >= max(0, totalDisplayLines - visibleRows)) userScrolled = false;
                         drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         break;
                     }
-                    else if (keysym == XK_Home)
-                    {
+                    else if (keysym == XK_Home) {
                         scrollOffset = 0;
                         userScrolled = true;
                         drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         break;
                     }
-                    else if (keysym == XK_End)
-                    {
-                        int visibleRows = computeVisibleRows();
+                    else if (keysym == XK_End) {
                         scrollOffset = max(0, totalDisplayLines - visibleRows);
                         userScrolled = false;
                         drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         break;
                     }
 
-                    // Now handle printable / control results (from mbuf)
-                    if (nbytes > 0)
+                    // --- Normal character handling ---
+                    if ((status == XLookupChars || status == XLookupBoth) && len > 0)
                     {
-                        unsigned char c0 = (unsigned char)mbuf[0];
-
-                        // ENTER (newline)
-                        if (c0 == '\r' || c0 == '\n')
-                        {
-                            // execute command: get output vector<string>, each element a separate line
-                            vector<string> outputs = execCommand(input); // <-- changed here
+                        if (wbuf[0] == L'\r' || wbuf[0] == L'\n') {
+                            vector<string> outputs = execCommand(input); // returns vector<string>
                             input.clear();
+                            for (const auto &line : outputs) screenBuffer.push_back(line);
+                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
-                            // append each returned line to screenBuffer
-                            for (const auto &line : outputs)
-                                screenBuffer.push_back(line);
-
-                            // push new prompt
-                            screenBuffer.push_back(string("shre@Term:~") + getPWD() + "$ ");
-
-                            // recompute total lines and auto-scroll if user hasn't scrolled
                             totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                            int visibleRows = computeVisibleRows();
-                            if (!userScrolled)
+
+                            if (!userScrolled) {
                                 scrollOffset = max(0, totalDisplayLines - visibleRows);
-                            else
-                                scrollOffset = min(scrollOffset, max(0, totalDisplayLines - visibleRows));
-
-                            drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-
-                            // optional: cap history (if you want)
-                            if ((int)screenBuffer.size() > ROWS)
-                                screenBuffer.erase(screenBuffer.begin());
+                                drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                            }
                         }
-                        // BACKSPACE
-                        else if (c0 == 8 || c0 == 127)
-                        {
-                            string curPrompt = string("shre@Term:~") + getPWD() + "$ ";
-                            if (!screenBuffer.empty() && screenBuffer.back().size() > curPrompt.size())
-                            {
+                        else if (wbuf[0] == 8 || wbuf[0] == 127) { // backspace
+                            string prompt = "shre@Term:~" + getPWD() + "$ ";
+                            if (!screenBuffer.empty() && screenBuffer.back().size() > prompt.size()) {
                                 screenBuffer.back().pop_back();
                                 if (!input.empty()) input.pop_back();
                             }
-
                             totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                            if (!userScrolled)
-                            {
-                                int visibleRows = computeVisibleRows();
-                                scrollOffset = max(0, totalDisplayLines - visibleRows);
-                            }
-                            drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         }
-                        // printable (ASCII or UTF-8 sequence)
-                        else
-                        {
-                            if (screenBuffer.empty())
-                                screenBuffer.push_back(string("shre@Term:~") + getPWD() + "$ ");
-
-                            // If mbuf starts with ASCII, append to input and display
-                            if (mbuf[0] && (unsigned char)mbuf[0] < 128)
-                            {
-                                input.push_back((char)mbuf[0]);
-                                screenBuffer.back().push_back((char)mbuf[0]);
+                        else { // normal char
+                            if (screenBuffer.empty()) screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+                            if (wbuf[0] < 128) {
+                                input.push_back((char)wbuf[0]);
+                                screenBuffer.back().push_back((char)wbuf[0]);
                             }
-                            else
-                            {
-                                // non-ASCII: append the whole UTF-8 sequence visually
-                                for (int i = 0; i < nbytes; ++i)
-                                    screenBuffer.back().push_back(mbuf[i]);
-                                // note: editing UTF-8 properly requires codepoint-aware logic
-                            }
-
                             totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                            if (!userScrolled)
-                            {
-                                int visibleRows = computeVisibleRows();
-                                scrollOffset = max(0, totalDisplayLines - visibleRows);
-                            }
-                            drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         }
                     }
 
-                    // If keysym is escape, quit
-                    if (keysym == XK_Escape)
-                    {
-                        running = false;
-                    }
+                    if (keysym == XK_Escape) running = false;
 
                     break;
                 } // KeyPress
-            } // switch event.type
-        } // if XPending
+            } // switch
+        } // XPending
 
-        // Blink cursor every 500ms
-        auto now = std::chrono::steady_clock::now();
+        // --- Blink cursor ---
+        auto now = chrono::steady_clock::now();
         if (chrono::duration_cast<std::chrono::milliseconds>(now - lastBlink).count() > 500)
         {
             showCursor = !showCursor;
             lastBlink = now;
             drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
         }
-    } // while running
+    }
 
-    // cleanup IM/IC
     if (xic) XDestroyIC(xic);
     if (xim) XCloseIM(xim);
 }
