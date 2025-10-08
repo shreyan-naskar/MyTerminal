@@ -1,6 +1,6 @@
 # Makefile
 
-PROG = creatingwindow
+PROG = termgui
 SRC  = $(PROG).cpp
 OBJ  = $(SRC:.cpp=.o)
 
