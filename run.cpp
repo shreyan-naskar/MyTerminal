@@ -59,8 +59,7 @@ static void run(Window win)
 
     int scrollOffset = 0;
     bool userScrolled = false;
-    bool ifMultLine = false; 
-    int isUp = 0; // 1 : now going up; -1 : now going down; 0 : init
+    bool ifMultLine = false;
     int idx = -1;
     vector<string> inputs;
 
@@ -156,34 +155,41 @@ static void run(Window win)
                     drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                     break;
                 }
-                else if (keysym == XK_Up)
+                if (keysym == XK_Up)
+                {
+                    if (!inputs.empty())
+                    {
+                        if (idx > 0)
+                            idx--;
+                        else
+                            idx = 0; // stay at the oldest command
 
-                {   
-                    if(isUp == -1) idx --;
-
-                    if (idx >= 0)
-                    {   
-                        input = inputs[idx--];
+                        input = inputs[idx];
                         screenBuffer.pop_back();
                         screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
-                        isUp = 1;
                     }
                     break;
-
                 }
-                else if (keysym == XK_Down)
-                {   
-                    if(isUp == 1) idx++;
 
-                    if (idx < (int)inputs.size())
-                    {    
-                        input = inputs[++idx];
+                if (keysym == XK_Down)
+                {
+                    if (!inputs.empty())
+                    {
+                        if (idx < (int)inputs.size() - 1)
+                        {
+                            idx++;
+                            input = inputs[idx];
+                        }
+                        else
+                        {
+                            idx = inputs.size();
+                            input.clear();
+                        }
+
                         screenBuffer.pop_back();
                         screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
-                        isUp = -1;
                     }
                     break;
-
                 }
 
                 // --- Normal character handling ---
@@ -199,18 +205,54 @@ static void run(Window win)
                         }
                         else
                         {
-                            if((inputs.empty() || inputs.back() != input) && (!input.size() == 0))
+                            // save to history (same as before)
+                            if ((inputs.empty() || inputs.back() != input) && (!input.empty()))
                                 inputs.push_back(input);
-                                
 
                             idx = inputs.size() - 1;
 
+                            // SPECIAL: handle "clear" (only clears visible screenBuffer, keeps history)
+                            // trim whitespace from input for robust match
+                            auto trim = [](const string &s) -> string
+                            {
+                                size_t a = 0, b = s.size();
+                                while (a < b && isspace((unsigned char)s[a]))
+                                    ++a;
+                                while (b > a && isspace((unsigned char)s[b - 1]))
+                                    --b;
+                                return s.substr(a, b - a);
+                            };
+                            string trimmed = trim(input);
+                            if (trimmed == "clear")
+                            {
+                                // clear only the visible buffer and show single prompt line
+                                screenBuffer.clear();
+                                screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+
+                                // reset scroll to bottom (you can set to 0 if you prefer top)
+                                totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                                // put view at bottom (so prompt is visible)
+                                {
+                                    XWindowAttributes attrs;
+                                    XGetWindowAttributes(dpy, win, &attrs);
+                                    int lineHeight = font->ascent + font->descent;
+                                    int visibleRows = max(1, (attrs.height - (/* if defined */ + 5)) / lineHeight);
+                                    // In your code you used 30 as top margin earlier; use same logic if needed.
+                                    scrollOffset = max(0, totalDisplayLines - visibleRows);
+                                    userScrolled = false;
+                                }
+                                // redraw and clear input
+                                drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                                input.clear();
+                                continue;
+                            }
+
+                            // Normal execution path: run the command and append outputs
                             vector<string> outputs = execCommand(input); // returns vector<string>
                             input.clear();
                             for (const auto &line : outputs)
                             {
                                 screenBuffer.push_back(line);
-                                // cout<<line;
                             }
                             screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
@@ -223,6 +265,7 @@ static void run(Window win)
                             }
                         }
                     }
+
                     else if (wbuf[0] == 8 || wbuf[0] == 127)
                     { // backspace
                         string prompt = "shre@Term:~" + getPWD() + "$ ";
@@ -231,7 +274,8 @@ static void run(Window win)
                             screenBuffer.back().pop_back();
                             if (!input.empty())
                             {
-                                if (input.back() == '"') ifMultLine = not ifMultLine;
+                                if (input.back() == '"')
+                                    ifMultLine = not ifMultLine;
                                 input.pop_back();
                             }
                         }
