@@ -218,6 +218,7 @@ static void run(Window win)
 
     int scrollOffset = 0;
     bool userScrolled = false;
+    bool ifMultLine = false;
 
     int totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
 
@@ -305,20 +306,30 @@ static void run(Window win)
                     if ((status == XLookupChars || status == XLookupBoth) && len > 0)
                     {
                         if (wbuf[0] == L'\r' || wbuf[0] == L'\n') {
-                            vector<string> outputs = execCommand(input); // returns vector<string>
-                            input.clear();
-                            for (const auto &line : outputs)
-                            {
-                                screenBuffer.push_back(line);
-                                cout<<line;
+                            if( ifMultLine )
+                            {   
+                                screenBuffer.push_back("");
+                                input.push_back('\n');
+                                continue;
                             }
-                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
+                            else
+                            {
+                                cout<<input<<endl;
+                                vector<string> outputs = execCommand(input); // returns vector<string>
+                                input.clear();
+                                for (const auto &line : outputs)
+                                {
+                                    screenBuffer.push_back(line);
+                                    // cout<<line;
+                                }
+                                screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
 
-                            totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                                totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
 
-                            if (!userScrolled) {
-                                scrollOffset = max(0, totalDisplayLines - visibleRows);
-                                drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                                if (!userScrolled) {
+                                    scrollOffset = max(0, totalDisplayLines - visibleRows);
+                                    drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                                }
                             }
                         }
                         else if (wbuf[0] == 8 || wbuf[0] == 127) { // backspace
@@ -332,8 +343,11 @@ static void run(Window win)
                         else { // normal char
                             if (screenBuffer.empty()) screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
                             if (wbuf[0] < 128) {
+                                // if (((char)wbuf[0]) != '"')
                                 input.push_back((char)wbuf[0]);
                                 screenBuffer.back().push_back((char)wbuf[0]);
+                                if (((char)wbuf[0]) == '"')
+                                    ifMultLine = not ifMultLine;
                             }
                             totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                         }

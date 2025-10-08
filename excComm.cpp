@@ -14,18 +14,16 @@ string stripANSI(const string &s)
 }
 
 vector<string> execCommand(const string &cmd)
-{   
-
-    cout<<"lund";
+{
     if (cmd.empty())
         return {""};
 
-    // Handle built-in 'cd'
+    // Handle 'cd' separately
     if (cmd.rfind("cd ", 0) == 0)
     {
         string path = cmd.substr(3);
         if (chdir(path.c_str()) != 0)
-            return {"cd: failed to change directory\n"};
+            return {"cd: failed to change directory"};
         return {""};
     }
     if (cmd == "cd" || cmd == "cd ~")
@@ -34,28 +32,14 @@ vector<string> execCommand(const string &cmd)
         return {""};
     }
 
-    // Tokenize command
-    vector<string> args;
-    istringstream iss(cmd);
-    string token;
-    while (iss >> token)
-        args.push_back(token);
-    if (args.empty())
-        return {""};
-
-    vector<char *> argv;
-    for (auto &a : args)
-        argv.push_back(&a[0]);
-    argv.push_back(nullptr);
-
-    // Temporary file for output
+    // Use temporary file for capturing output
     const char *tempFile = "/tmp/cmd_output.txt";
 
     pid_t pid = fork();
 
     if (pid == 0)
     {
-        // Child: redirect stdout + stderr to file
+        // Child: redirect stdout/stderr
         int fd = open(tempFile, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (fd < 0)
         {
@@ -67,30 +51,30 @@ vector<string> execCommand(const string &cmd)
         dup2(fd, STDERR_FILENO);
         close(fd);
 
-        execvp(argv[0], argv.data());
+        // Let bash parse the command string
+        execl("/bin/bash", "bash", "-c", cmd.c_str(), nullptr);
 
         perror("exec failed");
         _exit(1);
     }
     else if (pid > 0)
     {
-        // Parent waits
+        // Parent: wait and read
         wait(NULL);
         ifstream file(tempFile);
         vector<string> lines;
         string line;
-
         while (getline(file, line))
         {
-            lines.push_back(line);
+            cout<<line;
+            lines.push_back(line); // preserves line breaks
         }
-
         file.close();
         return lines;
     }
     else
     {
-        return {"fork failed\n"};
+        return {"fork failed"};
     }
 }
 
