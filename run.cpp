@@ -15,6 +15,26 @@ using namespace std;
 #include "exec.cpp"
 #include "draw.cpp"
 
+vector<string> sepInp(string input)
+{
+    vector<string> lines;
+
+    string line = "";
+    for (auto c : input)
+    {
+        if (c == '\n')
+        {
+            lines.push_back(line);
+            line = "";
+            continue;
+        }
+        line += c;
+    }
+    lines.push_back(line);
+
+    return lines;
+}
+
 static const int SCROLL_STEP = 3; // lines per wheel/page step
 
 static void run(Window win)
@@ -160,25 +180,44 @@ static void run(Window win)
                 }
                 if (keysym == XK_Up)
                 {
+                    cout<<"TOTAL"<<inputs.size()<<endl;
+                    cout<<idx<<" ";
                     if (!inputs.empty())
                     {
                         if (idx > 0)
                             idx--;
                         else
                             idx = 0; // stay at the oldest command
-
+                            
                         input = inputs[idx];
+                        cout<<idx<<" "<<input<<endl;
+                        while(screenBuffer.back()[0] == '>'){
+                            screenBuffer.pop_back();
+                        }
                         screenBuffer.pop_back();
-                        if (getPWD() == "/")
-                            screenBuffer.push_back("shre@Term:" + getPWD() + "$ " + input);
-                        else
-                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
+                        vector<string> sepLines = sepInp(input);
+                        for (size_t i = 0; i < sepLines.size(); i++)
+                        {
+                            string showLine = sepLines[i];
+                            if (i == 0)
+                            {
+                                if (getPWD() == "/")
+                                    screenBuffer.push_back("shre@Term:" + getPWD() + "$ " + showLine);
+                                else
+                                    screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + showLine);
+
+                                continue;
+                            }
+                            screenBuffer.push_back(">" + showLine);
+                        }
                     }
                     break;
                 }
 
                 if (keysym == XK_Down)
                 {
+                    cout<<"TOTAL"<<inputs.size()<<endl;
+                    cout<<idx<<" ";
                     if (!inputs.empty())
                     {
                         if (idx < (int)inputs.size() - 1)
@@ -191,14 +230,37 @@ static void run(Window win)
                             idx = inputs.size();
                             input.clear();
                         }
-
+                        cout<<idx<<" "<<input<<endl;
+                        while(screenBuffer.back()[0] == '>'){
+                            screenBuffer.pop_back();
+                        }
                         screenBuffer.pop_back();
-                        if (getPWD() == "/")
-                            screenBuffer.push_back("shre@Term:" + getPWD() + "$ " + input);
-                        else
-                            screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + input);
+                        vector<string> sepLines = sepInp(input);
+                        for (size_t i = 0; i < sepLines.size(); i++)
+                        {
+                            string showLine = sepLines[i];
+                            if (i == 0)
+                            {
+                                if (getPWD() == "/")
+                                    screenBuffer.push_back("shre@Term:" + getPWD() + "$ " + showLine);
+                                else
+                                    screenBuffer.push_back("shre@Term:~" + getPWD() + "$ " + showLine);
+
+                                continue;
+                            }
+                            screenBuffer.push_back(">" + showLine);
+                        }
                     }
                     break;
+                }
+
+                if ((event.xkey.state & ControlMask) && (keysym == XK_v || keysym == XK_V))
+                {
+                    XConvertSelection(dpy, XInternAtom(dpy, "CLIPBOARD", False),
+                                      XInternAtom(dpy, "UTF8_STRING", False),
+                                      XInternAtom(dpy, "PASTE_BUFFER", False),
+                                      win, CurrentTime);
+                    continue;
                 }
 
                 // --- Normal character handling ---
@@ -215,10 +277,10 @@ static void run(Window win)
                         else
                         {
                             // save to history (same as before)
-                            if ((inputs.empty() || inputs.back() != input) && (!input.empty()))
+                            if ((inputs.empty()) || (!input.empty() && inputs.back() != input))
                                 inputs.push_back(input);
 
-                            idx = inputs.size() - 1;
+                            idx = inputs.size();
 
                             // SPECIAL: handle "clear" (only clears visible screenBuffer, keeps history)
                             // trim whitespace from input for robust match
@@ -248,7 +310,7 @@ static void run(Window win)
                                     XWindowAttributes attrs;
                                     XGetWindowAttributes(dpy, win, &attrs);
                                     int lineHeight = font->ascent + font->descent;
-                                    int visibleRows = max(1, (attrs.height - (/* if defined */ + 5)) / lineHeight);
+                                    int visibleRows = max(1, (attrs.height - (/* if defined */ +5)) / lineHeight);
                                     // In your code you used 30 as top margin earlier; use same logic if needed.
                                     scrollOffset = max(0, totalDisplayLines - visibleRows);
                                     userScrolled = false;
@@ -286,7 +348,7 @@ static void run(Window win)
 
                         string prompt = "shre@Term:~" + getPWD() + "$ ";
                         if (getPWD() == "/")
-                                prompt = "shre@Term:" + getPWD() + "$ ";
+                            prompt = "shre@Term:" + getPWD() + "$ ";
                         if (!screenBuffer.empty() && screenBuffer.back().size() != prompt.size() && screenBuffer.back().size() > 1)
                         {
                             screenBuffer.back().pop_back();
@@ -325,6 +387,52 @@ static void run(Window win)
 
                 break;
             } // KeyPress
+            case SelectionNotify:
+                if (event.xselection.selection == XInternAtom(dpy, "CLIPBOARD", False))
+                {
+                    Atom type;
+                    int format;
+                    unsigned long nitems, bytes_after;
+                    unsigned char *data = nullptr;
+
+                    XGetWindowProperty(dpy, win,
+                                       XInternAtom(dpy, "PASTE_BUFFER", False),
+                                       0, (~0L), True, AnyPropertyType,
+                                       &type, &format, &nitems, &bytes_after, &data);
+
+                    if (data)
+                    {
+                        std::string clipText((char *)data, nitems);
+                        XFree(data);
+
+                        //  Append to input buffer or insert into screen
+                        std::istringstream ss(clipText);
+                        std::string line;
+                        bool first = true;
+
+                        while (std::getline(ss, line))
+                        {
+                            if (first)
+                            {
+                                // Continue on current line
+                                screenBuffer.back() += line;
+                                input += line;
+                                first = false;
+                            }
+                            else
+                            {
+                                // New line (simulate Enter key)
+                                screenBuffer.push_back(line);
+                                input += '\n';
+                                input += line;
+                            }
+                        }
+
+                        // Optional: redraw
+                        drawScreen(win, gc, font, screenBuffer, true, scrollOffset);
+                    }
+                }
+                break;
             } // switch
         } // XPending
 
