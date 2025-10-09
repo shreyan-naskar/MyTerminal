@@ -10,6 +10,8 @@
 #include <unistd.h>
 #include <cctype>
 #include <regex>
+#include<limits.h>
+#include<climits>
 
 using namespace std;
 #include "exec.cpp"
@@ -58,7 +60,7 @@ static void run(Window win)
             std::cerr << "XCreateIC failed — continuing without input context\n";
     }
 
-    XFontStruct *font = XLoadQueryFont(dpy, "12x24");
+    XFontStruct *font = XLoadQueryFont(dpy, "8X16");
     if (!font)
         font = XLoadQueryFont(dpy, "fixed");
 
@@ -180,18 +182,18 @@ static void run(Window win)
                 }
                 if (keysym == XK_Up)
                 {
-                    cout<<"TOTAL"<<inputs.size()<<endl;
-                    cout<<idx<<" ";
+
                     if (!inputs.empty())
                     {
                         if (idx > 0)
                             idx--;
                         else
                             idx = 0; // stay at the oldest command
-                            
+
                         input = inputs[idx];
-                        cout<<idx<<" "<<input<<endl;
-                        while(screenBuffer.back()[0] == '>'){
+
+                        while (screenBuffer.back()[0] == '>')
+                        {
                             screenBuffer.pop_back();
                         }
                         screenBuffer.pop_back();
@@ -216,8 +218,7 @@ static void run(Window win)
 
                 if (keysym == XK_Down)
                 {
-                    cout<<"TOTAL"<<inputs.size()<<endl;
-                    cout<<idx<<" ";
+
                     if (!inputs.empty())
                     {
                         if (idx < (int)inputs.size() - 1)
@@ -230,8 +231,9 @@ static void run(Window win)
                             idx = inputs.size();
                             input.clear();
                         }
-                        cout<<idx<<" "<<input<<endl;
-                        while(screenBuffer.back()[0] == '>'){
+
+                        while (screenBuffer.back()[0] == '>')
+                        {
                             screenBuffer.pop_back();
                         }
                         screenBuffer.pop_back();
@@ -422,7 +424,7 @@ static void run(Window win)
                             else
                             {
                                 // New line (simulate Enter key)
-                                screenBuffer.push_back(line);
+                                screenBuffer.push_back(">" + line);
                                 input += '\n';
                                 input += line;
                             }
