@@ -77,19 +77,20 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     static bool colorsInit = false;
     static unsigned long greenPixel = WhitePixel(dpy, scr);
     static unsigned long whitePixel = WhitePixel(dpy, scr);
+    static unsigned long redPixel = WhitePixel(dpy, scr);
     if (!colorsInit)
     {
         Colormap colormap = DefaultColormap(dpy, scr);
-        XColor green, white, exact;
+        XColor green, white, red, exact;
+
         if (XAllocNamedColor(dpy, colormap, "green", &green, &exact))
             greenPixel = green.pixel;
-        else
-            greenPixel = WhitePixel(dpy, scr);
 
         if (XAllocNamedColor(dpy, colormap, "white", &white, &exact))
             whitePixel = white.pixel;
-        else
-            whitePixel = WhitePixel(dpy, scr);
+
+        if (XAllocNamedColor(dpy, colormap, "red", &red, &exact))
+            redPixel = red.pixel;
 
         colorsInit = true;
     }
@@ -164,29 +165,40 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         int x = marginLeft;
         const DisplayLine &dl = displayLines[row];
 
+        unsigned long color = whitePixel;
+
+        // If line starts with "ERR:", use red
+        string textToDraw = dl.text;
+        if (textToDraw.rfind("ERROR:", 0) == 0) // line starts with ERR:
+        {
+            color = redPixel;
+            textToDraw = textToDraw.substr(7); // remove ERR: prefix
+        }
+
+        // If there is prompt at the start, keep green for prompt only
         if (dl.promptChars > 0)
         {
-            string ppart = dl.text.substr(0, dl.promptChars);
+            string ppart = textToDraw.substr(0, dl.promptChars);
             XSetForeground(dpy, gc, greenPixel);
             XDrawString(dpy, win, gc, x, y, ppart.c_str(), (int)ppart.length());
             x += XTextWidth(font, ppart.c_str(), (int)ppart.length());
 
-            string rpart = dl.text.substr(dl.promptChars);
+            string rpart = textToDraw.substr(dl.promptChars);
             if (!rpart.empty())
             {
-                XSetForeground(dpy, gc, whitePixel);
+                XSetForeground(dpy, gc, color); // white or red
                 XDrawString(dpy, win, gc, x, y, rpart.c_str(), (int)rpart.length());
             }
         }
         else
         {
-            XSetForeground(dpy, gc, whitePixel);
-            XDrawString(dpy, win, gc, x, y, dl.text.c_str(), (int)dl.text.length());
+            XSetForeground(dpy, gc, color); // white or red
+            XDrawString(dpy, win, gc, x, y, textToDraw.c_str(), (int)textToDraw.length());
         }
     }
 
     // Draw cursor — compute its absolute display-line index (last line)
-    // Draw cursor using global currCursorPos and global input
+    // Draw cursor using global cursorPos and global input
     if (showCursor)
     {
         string s = getPWD();
