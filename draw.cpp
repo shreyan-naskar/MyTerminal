@@ -12,11 +12,12 @@
 #include <regex>
 using namespace std;
 
-
 static Display *dpy;
 static int scr;
 static Window root;
 static const int ROWS = 24; // visible lines
+string input;
+int currCursorPos = 0;
 
 #define POSX 500
 #define POSY 500
@@ -24,20 +25,40 @@ static const int ROWS = 24; // visible lines
 #define HEIGHT 500
 #define BORDER 15
 
+string getPWD()
+{
+    char cwd[512];
+    string currentDir;
+    if (getcwd(cwd, sizeof(cwd)) != nullptr)
+    {
+        currentDir = string(cwd);
+    }
+    if (currentDir.size() < 15)
+    {
+        return currentDir;
+    }
+    return currentDir.substr(15);
+}
+
 static Window create_window(int x, int y, int h, int w, int b)
 {
     Window win;
     XSetWindowAttributes xwa;
 
     xwa.background_pixel = BlackPixel(dpy, scr);
-    xwa.border_pixel = WhitePixel(dpy, scr);
+    xwa.border_pixel = WhitePixel(dpy, scr); // white border
     xwa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask;
 
-    win = XCreateWindow(dpy, root, x, y, w, h, b, DefaultDepth(dpy, scr), InputOutput, DefaultVisual(dpy, scr), CWBackPixel | CWBorderPixel | CWEventMask, &xwa);
+    win = XCreateWindow(
+        dpy, root, x, y, w, h, b,
+        DefaultDepth(dpy, scr),
+        InputOutput,
+        DefaultVisual(dpy, scr),
+        CWBackPixel | CWBorderPixel | CWEventMask,
+        &xwa);
+
     return win;
 }
-
-// returns total number of display lines (after wrapping)
 static int drawScreen(Window win, GC gc, XFontStruct *font,
                       vector<string> &screenBuffer, bool showCursor, int scrollOffset)
 {
@@ -76,7 +97,11 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     const string promptPrefix = "shre@Term:"; // your prompt prefix
 
     // Build wrapped display lines as before
-    struct DisplayLine { string text; int promptChars; };
+    struct DisplayLine
+    {
+        string text;
+        int promptChars;
+    };
     vector<DisplayLine> displayLines;
 
     for (const auto &origLine : screenBuffer)
@@ -104,7 +129,11 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
                 ++len;
             }
 
-            if (len == 0) { ++pos; ++len; }
+            if (len == 0)
+            {
+                ++pos;
+                ++len;
+            }
 
             string piece = origLine.substr(start, len);
             int promptCharsInPiece = 0;
@@ -120,8 +149,10 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
 
     // clamp scrollOffset to valid range
     int totalLines = (int)displayLines.size();
-    if (scrollOffset < 0) scrollOffset = 0;
-    if (scrollOffset > max(0, totalLines - visibleRows)) scrollOffset = max(0, totalLines - visibleRows);
+    if (scrollOffset < 0)
+        scrollOffset = 0;
+    if (scrollOffset > max(0, totalLines - visibleRows))
+        scrollOffset = max(0, totalLines - visibleRows);
 
     // draw only visible window: from scrollOffset .. scrollOffset + visibleRows - 1
     int start = scrollOffset;
@@ -155,14 +186,57 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     }
 
     // Draw cursor — compute its absolute display-line index (last line)
-    if (showCursor && !displayLines.empty())
+    // Draw cursor using global currCursorPos and global input
+    if (showCursor)
     {
-        int cursorLineIndex = totalLines - 1;            // last display line index
+        string s = getPWD();
+        string prompt = (s == "/") ? "shre@Term:" + s + "$ " : "shre@Term:~" + s + "$ ";
+
+        // Split input into lines
+        vector<string> lines;
+        size_t pos = 0, last = 0;
+        while ((pos = input.find('\n', last)) != string::npos)
+        {
+            lines.push_back(input.substr(last, pos - last));
+            last = pos + 1;
+        }
+        lines.push_back(input.substr(last));
+
+        // Figure out which line cursor is on
+        int curLine = 0, curCol = currCursorPos;
+        int counted = 0;
+        for (size_t i = 0; i < lines.size(); i++)
+        {
+            if (currCursorPos <= counted + (int)lines[i].size())
+            {
+                curLine = i;
+                curCol = currCursorPos - counted;
+                break;
+            }
+            counted += lines[i].size() + 1; // +1 for '\n'
+        }
+
+        // ---- FIXED: handle prompt offset only for the first line ----
+        string uptoCursor;
+        if (curLine == 0)
+            uptoCursor = prompt + lines[curLine].substr(0, curCol);
+        else
+            uptoCursor = lines[curLine].substr(0, curCol);
+
+        // Measure pixel width
+        int pxWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
+
+        // Compute where to draw cursor
+        int cursorX = marginLeft + pxWidth;
+        int cursorLineIndex = totalLines - (lines.size() - curLine);
+
+        if (cursorLineIndex < start)
+            scrollOffset = max(0, cursorLineIndex - 1);
+        if (cursorLineIndex >= end)
+            scrollOffset = max(0, cursorLineIndex - visibleRows + 1);
+
         if (cursorLineIndex >= start && cursorLineIndex < end)
         {
-            const DisplayLine &last = displayLines[cursorLineIndex];
-            int pxWidth = XTextWidth(font, last.text.c_str(), (int)last.text.length());
-            int cursorX = marginLeft + pxWidth;
             int row = cursorLineIndex - start;
             int yTop = marginTop + row * lineHeight - font->ascent;
             int yBottom = marginTop + row * lineHeight + font->descent;

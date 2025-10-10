@@ -30,7 +30,7 @@ int main()
     root = RootWindow(dpy, scr);
     win = create_window(POSX, POSY, WIDTH, HEIGHT, BORDER);
     XStoreName(dpy, win, "shreTerm");
-    chdir("/home/shreyan10");
+    chdir("/");
     run(win);
 
     XUnmapWindow(dpy, win);

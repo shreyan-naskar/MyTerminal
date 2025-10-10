@@ -24,36 +24,30 @@ string stripANSI(const string &s)
     return regex_replace(s, ansi, "");
 }
 
-string getPWD()
-{
-    char cwd[512];
-    string currentDir;
-    if (getcwd(cwd, sizeof(cwd)) != nullptr)
-    {
-        currentDir = string(cwd);
-    }
-    if (currentDir.size() < 15)
-    {
-        return currentDir;
-    }
-    return currentDir.substr(15);
-}
+#include <bits/stdc++.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+using namespace std;
 
 vector<string> execCommand(const string &cmd)
 {
-    if (cmd.empty()) return {""};
+    if (cmd.empty())
+        return {""};
 
-    // Split by '|'
+    // Trim
     string trimmed = cmd;
     trimmed.erase(0, trimmed.find_first_not_of(" \t"));
     trimmed.erase(trimmed.find_last_not_of(" \t") + 1);
 
-    // Built-in 'cd'
+    // ===== Built-in cd =====
     if (trimmed.rfind("cd ", 0) == 0)
     {
         string path = trimmed.substr(3);
+        path.erase(0, path.find_first_not_of(" \t"));
+        path.erase(path.find_last_not_of(" \t") + 1);
         if (chdir(path.c_str()) != 0)
-            return {"cd: failed to change directory"};
+            return {"cd: no such file or directory: " + path};
         return {""};
     }
     if (trimmed == "cd" || trimmed == "cd ~")
@@ -61,83 +55,100 @@ vector<string> execCommand(const string &cmd)
         chdir(getenv("HOME"));
         return {""};
     }
+
+    // ===== Split by | =====
     vector<string> pipeParts;
     stringstream ss(cmd);
-    string segment;
-    while (getline(ss, segment, '|'))
+    string part;
+    while (getline(ss, part, '|'))
     {
-        segment.erase(0, segment.find_first_not_of(" \t"));
-        segment.erase(segment.find_last_not_of(" \t") + 1);
-        pipeParts.push_back(segment);
+        part.erase(0, part.find_first_not_of(" \t"));
+        part.erase(part.find_last_not_of(" \t") + 1);
+        if (!part.empty())
+            pipeParts.push_back(part);
     }
 
     int numPipes = pipeParts.size() - 1;
     vector<int> pipefd(2 * numPipes);
+    for (int i = 0; i < numPipes; ++i)
+        if (pipe(pipefd.data() + i * 2) < 0)
+            return {"pipe creation failed"};
 
-    // Create internal pipes
-    for (int i = 0; i < numPipes; i++)
-        pipe(pipefd.data() + i * 2);
-
-    // Extra pipe to capture final output
+    // Final capture pipe for combined stdout+stderr
     int capture[2];
-    pipe(capture);
+    if (pipe(capture) < 0)
+        return {"capture pipe failed"};
 
     vector<pid_t> pids;
-    for (size_t i = 0; i < pipeParts.size(); i++)
+
+    // ===== Fork children =====
+    for (int i = 0; i < (int)pipeParts.size(); ++i)
     {
         pid_t pid = fork();
         if (pid == 0)
         {
-            // Input from previous pipe
-            if (i != 0) dup2(pipefd[(i - 1) * 2], STDIN_FILENO);
-            // Output to next pipe or to capture
-            if (i != pipeParts.size() - 1)
+            // ===== CHILD =====
+            // Redirect input/output properly before exec
+            if (i > 0)
+                dup2(pipefd[(i - 1) * 2], STDIN_FILENO);
+            if (i < numPipes)
                 dup2(pipefd[i * 2 + 1], STDOUT_FILENO);
             else
-                dup2(capture[1], STDOUT_FILENO); // last command writes to capture
+                dup2(capture[1], STDOUT_FILENO);
 
-            // Close all pipes in child
-            for (int j = 0; j < 2 * numPipes; j++) close(pipefd[j]);
+            // Redirect stderr to same place
+            dup2(STDOUT_FILENO, STDERR_FILENO);
+
+            // Close all inherited pipe ends
+            for (int j = 0; j < 2 * numPipes; ++j)
+                close(pipefd[j]);
             close(capture[0]);
             close(capture[1]);
 
-            execl("/bin/bash", "bash", "-c", pipeParts[i].c_str(), nullptr);
+            // Run command
+            execlp("/bin/bash", "bash", "-c", pipeParts[i].c_str(), (char *)NULL);
             perror("exec failed");
-            _exit(1);
+            _exit(127);
         }
-        else if (pid < 0)
-        {
-            perror("fork failed");
-            return {"fork failed"};
-        }
-        else
+        else if (pid > 0)
             pids.push_back(pid);
+        else
+            return {"fork failed"};
     }
 
-    // Parent closes write ends
-    for (int j = 0; j < 2 * numPipes; j++) close(pipefd[j]);
-    close(capture[1]); // close write end of capture pipe
+    // ===== PARENT =====
+    // Close unused FDs
+    for (int j = 0; j < 2 * numPipes; ++j)
+        close(pipefd[j]);
+    close(capture[1]);
 
-    // Read final output from capture pipe
+    // Capture output
     vector<string> lines;
-    char buffer[1024];
+    string bufferStr;
+    char buf[1024];
     ssize_t n;
-    string partial;
-    while ((n = read(capture[0], buffer, sizeof(buffer))) > 0)
+
+    while ((n = read(capture[0], buf, sizeof(buf))) > 0)
     {
-        partial.append(buffer, n);
+        bufferStr.append(buf, n);
         size_t pos;
-        while ((pos = partial.find('\n')) != string::npos)
+        while ((pos = bufferStr.find('\n')) != string::npos)
         {
-            lines.push_back(partial.substr(0, pos));
-            partial.erase(0, pos + 1);
+            lines.push_back(bufferStr.substr(0, pos));
+            bufferStr.erase(0, pos + 1);
         }
     }
-    if (!partial.empty()) lines.push_back(partial);
+    if (!bufferStr.empty())
+        lines.push_back(bufferStr);
+
     close(capture[0]);
 
-    // Wait for all children
-    for (pid_t pid : pids) waitpid(pid, nullptr, 0);
+    // Wait for all
+    for (pid_t pid : pids)
+        waitpid(pid, nullptr, 0);
+
+    if (lines.empty())
+        lines.push_back("");
 
     return lines;
 }
