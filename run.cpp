@@ -18,35 +18,152 @@
 #include <fcntl.h>
 #include <locale.h>
 
-using namespace std;
 #include "exec.cpp"
 #include "draw.cpp"
+
+const string FILENAME = "/home/shreyan10/Desktop/GITHUB/MyTerminal/input_log.txt";
+using namespace std;
 vector<string> inputs;
-vector<string> sepInp(string input)
+string stripQuotes(const string &s)
 {
-    vector<string> lines;
+    if (s.size() >= 2 && s.front() == '"' && s.back() == '"')
+        return s.substr(1, s.size() - 2);
+    return s;
+}
 
-    string line = "";
-    for (auto c : input)
+// Compute length of common prefix of two strings
+int commonPrefixLength(const string &a, const string &b)
+{
+    int len = min(a.size(), b.size());
+    for (int i = 0; i < len; ++i)
+        if (a[i] != b[i])
+            return i;
+    return len;
+}
+
+// Search history file for exact match or longest prefix (ignoring quotes)
+string searchHistory(const string &input, const string &filename = FILENAME)
+{
+    ifstream in(filename);
+    if (!in)
+        return "No match for search term in history";
+
+    vector<string> history;
+    string line;
+
+    while (getline(in, line))
     {
-        if (c == '\n')
-        {
-            lines.push_back(line);
-            line = "";
-            continue;
-        }
-        line += c;
+        // Find the first character that is NOT a digit or space
+        size_t pos = line.find_first_not_of(" 0123456789");
+        if (pos != string::npos)
+            history.push_back(line.substr(pos)); // push from first non-digit, non-space
+        else
+            history.push_back(""); // line was all digits/spaces
     }
-    lines.push_back(line);
+    in.close();
 
-    return lines;
+    string exactMatch = "";
+    vector<string> candidates;
+    int maxPrefixLen = 0;
+
+    // Traverse from the end (most recent first)
+    for (auto it = history.rbegin(); it != history.rend(); ++it)
+    {
+        string cmd = *it;
+
+        if (cmd == input)
+        {
+            exactMatch = cmd;
+            break;
+        }
+
+        int prefixLen = commonPrefixLength(cmd, input);
+        if (prefixLen > maxPrefixLen)
+        {
+            maxPrefixLen = prefixLen;
+            candidates.clear();
+            candidates.push_back(cmd);
+        }
+        else if (prefixLen == maxPrefixLen)
+        {
+            candidates.push_back(cmd);
+        }
+    }
+
+    if (!exactMatch.empty())
+        return exactMatch;
+
+    if (maxPrefixLen >= 2)
+        return candidates[0]; // most recent with longest prefix
+
+    return "No match for search term in history";
+}
+
+// Store input (each line in quotes)
+int getLastHistoryNumber()
+{
+    ifstream in(FILENAME);
+    if (!in)
+        return 0;
+
+    string line;
+    int lastNum = 0;
+    while (getline(in, line))
+    {
+        istringstream iss(line);
+        int num;
+        if (iss >> num)
+        {
+            lastNum = max(lastNum, num);
+        }
+    }
+    in.close();
+    return lastNum;
+}
+
+// Store input with incremental history number (space separated)
+void storeInput(const string &input)
+{
+    int histNum = getLastHistoryNumber() + 1;
+
+    ofstream out(FILENAME, ios::app);
+    if (!out)
+    {
+        cerr << "Error opening file for writing.\n";
+        return;
+    }
+    out << "  " << histNum << "  " << input << endl; // tab-separated
+    out.close();
+}
+
+// Load inputs into vector (ignoring history number)
+vector<string> loadInputs()
+{
+    ifstream in(FILENAME);
+    vector<string> inputs;
+    if (!in)
+        return inputs;
+
+    string line;
+    while (getline(in, line))
+    {
+        // Find the first character that is NOT a digit or space
+        size_t pos = line.find_first_not_of(" 0123456789");
+        if (pos != string::npos)
+            inputs.push_back(line.substr(pos)); // push from first non-digit, non-space
+        else
+            inputs.push_back(""); // line was all digits/spaces
+    }
+
+    in.close();
+    return inputs;
 }
 
 static const int SCROLL_STEP = 3; // lines per wheel/page step
 
 static void run(Window win)
 {
-    int inpIdx = -1;
+    int inpIdx = inputs.size() - 1;
     XSelectInput(dpy, win, ExposureMask | KeyPressMask | ButtonPressMask);
 
     // --- XIM/XIC setup ---
@@ -81,7 +198,7 @@ static void run(Window win)
     {
         screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
     }
-    
+
     GC gc = XCreateGC(dpy, win, 0, nullptr);
     XSetFont(dpy, gc, font->fid);
     XSetForeground(dpy, gc, WhitePixel(dpy, scr)); // default
@@ -208,7 +325,9 @@ static void run(Window win)
                         }
                     }
                 };
-
+                // Escape quits
+                if (keysym == XK_Escape)
+                    running = false;
                 // --- navigation keys that don't rely on characters ---
                 if (keysym == XK_Page_Up)
                 {
@@ -245,12 +364,24 @@ static void run(Window win)
                 // --- inputs navigation (Up/Down) ---
                 if (keysym == XK_Up)
                 {
+                    if (isSearching == 1)
+                    {
+                        continue;
+                    }
+                    isMultLine = false;
                     if (!inputs.empty())
                     {
                         if (inpIdx > 0)
                             inpIdx--;
                         else
                             inpIdx = 0;
+                        for (size_t i = 0; i < input.size(); i++)
+                        {
+                            if (input[i] == '"')
+                            {
+                                isMultLine = !(isMultLine);
+                            }
+                        }
                         input = inputs[inpIdx];
                         currCursorPos = input.size();
                         rebuildScreenBuffer();
@@ -260,8 +391,13 @@ static void run(Window win)
                 }
                 if (keysym == XK_Down)
                 {
+                    if (isSearching == 1)
+                    {
+                        continue;
+                    }
                     if (!inputs.empty())
                     {
+                        isMultLine = false;
                         if (inpIdx < (int)inputs.size() - 1)
                         {
                             inpIdx++;
@@ -271,6 +407,13 @@ static void run(Window win)
                         {
                             inpIdx = inputs.size();
                             input.clear();
+                        }
+                        for (size_t i = 0; i < input.size(); i++)
+                        {
+                            if (input[i] == '"')
+                            {
+                                isMultLine = !(isMultLine);
+                            }
                         }
                         currCursorPos = input.size();
                         rebuildScreenBuffer();
@@ -304,12 +447,31 @@ static void run(Window win)
                                       win, CurrentTime);
                     break;
                 }
+                if ((event.xkey.state & ControlMask) && (keysym == XK_r))
+                {
+                    screenBuffer.push_back("Enter search term:");
+                    input = "";
+                    // screenBuffer.push_back("");
+                    string cwd = getPWD();
+                    string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
+                    currCursorPos = 0;
+                    isSearching = true;
+                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                    break;
+                }
 
                 // --- Ctrl+A (start of user input) ---
                 if ((event.xkey.state & ControlMask) && (keysym == XK_a))
                 {
+                    if (isSearching)
+                    {
+                        currCursorPos = 0;
+                    }
                     // Move to start of the current input (not counting prompt)
-                    currCursorPos = count;
+                    else
+                    {
+                        currCursorPos = count;
+                    }
                     totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                     break;
                 }
@@ -328,6 +490,37 @@ static void run(Window win)
                     // ENTER / RETURN
                     if (wbuf[0] == L'\r' || wbuf[0] == L'\n')
                     {
+                        if (isSearching)
+                        {
+
+                            string search_res = searchHistory(input);
+                            input = "";
+                            string cwd = getPWD();
+                            string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
+                            if (search_res != "No match for search term in history")
+                            {
+                                input = search_res;
+                                for (size_t i = 0; i < input.size(); i++)
+                                {
+                                    if (input[i] == '"')
+                                    {
+                                        isMultLine = !(isMultLine);
+                                    }
+                                }
+
+                                screenBuffer.push_back(prompt + input);
+                                currCursorPos = input.size();
+                            }
+                            else
+                            {
+                                screenBuffer.push_back(search_res);
+                                screenBuffer.push_back(prompt + input);
+                                currCursorPos = 0;
+                            }
+                            isSearching = false;
+
+                            continue;
+                        }
                         if (isMultLine)
                         { // multi-line active -> insert newline into input
                             input.insert(input.begin() + currCursorPos, '\n');
@@ -359,6 +552,23 @@ static void run(Window win)
                                 return s.substr(a, b - a);
                             };
                             string trimmed = trim(input);
+                            if (trimmed == "history")
+                            {
+                                ifstream in(FILENAME); // open file
+                                if (!in)
+                                {
+                                    cerr << "Error: cannot open file\n";
+                                    return;
+                                }
+
+                                string line;
+                                while (getline(in, line))
+                                {
+                                    screenBuffer.push_back(line); // process each line
+                                }
+
+                                in.close(); // close file
+                            }
                             // --- handle "clear" command ---
                             if (trimmed == "clear")
                             {
@@ -373,7 +583,7 @@ static void run(Window win)
                                 // 3) Reset input & cursor & isMultLines (so editing starts clean)
                                 input.clear();
                                 currCursorPos = 0;
-                                isMultLine = false;      // if you use this for quoting/multiline, reset it
+                                isMultLine = false; // if you use this for quoting/multiline, reset it
 
                                 // 4) Redraw and reposition view to bottom (so prompt is visible)
                                 totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
@@ -418,6 +628,16 @@ static void run(Window win)
                     // BACKSPACE
                     if (wbuf[0] == 8 || wbuf[0] == 127)
                     {
+                        if (isSearching && !input.empty())
+                        {
+                            string curr = screenBuffer.back();
+                            screenBuffer.pop_back();
+                            input.erase(input.begin() + currCursorPos - 1);
+                            screenBuffer.push_back(curr.substr(0, curr.size() - 1));
+                            currCursorPos--;
+                            continue;
+                        }
+
                         if (currCursorPos > 0)
                         {
                             if (input[currCursorPos - 1] == '"')
@@ -436,6 +656,13 @@ static void run(Window win)
 
                     // Regular printable char
                     char ch = (char)wbuf[0];
+                    if (isSearching)
+                    {
+                        input.insert(input.begin() + currCursorPos, ch);
+                        screenBuffer.back() += ch;
+                        currCursorPos++;
+                        continue;
+                    }
                     if (isprint((unsigned char)ch) || ch == '\t')
                     {
                         if (ch == '"')
@@ -447,10 +674,6 @@ static void run(Window win)
                         continue;
                     }
                 }
-
-                // Escape quits
-                if (keysym == XK_Escape)
-                    running = false;
                 break;
             } // end KeyPress
 
@@ -473,7 +696,7 @@ static void run(Window win)
                         std::string clipText((char *)data, nitems);
                         XFree(data);
 
-                        // ✅ Append to input buffer or insert into screen
+                        // Append to input buffer or insert into screen
                         std::istringstream ss(clipText);
                         std::string line;
                         bool first = true;

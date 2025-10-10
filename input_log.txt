@@ -1,0 +1,886 @@
+1  g++ hello.cpp
+    2  clear
+    3  g++ hello.cpp
+    4  clear
+    5  g++ hello.cpp
+    6  ./a.out
+    7  g++ 25CS60R67_Q1.cpp
+    8  ./a.out
+    9  cd
+   10  clear
+   11  ls
+   12  ls -l
+   13  ls  -l>gedit hrllo.txt
+   14  gedit hello.txt
+   15  ls  -l>gedit hello.txt
+   16  ls  -l>~|gedit hello.txt
+   17  ls  -l>~|hello.txt
+   18  ls  -l>hello.txt
+   19  gedit hello.txt
+   20  gedit hello2.txt
+   21  cp hello.txt hello2.txt
+   22  gedit hello2.txt
+   23  rm hello2.txt
+   24  rm hello.txt
+   25  cleat
+   26  clear
+   27  ls
+   28  ls -l
+   29  cd
+   30  cd ..
+   31  cd
+   32  cls
+   33  clear
+   34  gcc createtingwindow.cpp
+   35  mkdir templetes
+   36  cd templetes
+   37  cd ..
+   38  sudo apt update
+   39  sudo apt install libx11-dev
+   40  sudo apt install make
+   41  clear
+   42  gcc -lX11  createtingwindow.cpp
+   43  g++ -lX11 createtingwindow.cpp
+   44  g++ creatingwindow.cpp -o creatingwindow -lX11
+   45  clear
+   46  g++ creatingwindow.cpp -o creatingwindow -lX11
+   47  ./creatingwindow
+   48  make
+   49  ls
+   50  ./creatingwindow 
+   51  clear
+   52  make
+   53  ./creatingwindow 
+   54  clear
+   55  make
+   56  clear
+   57  make
+   58  clear
+   59  make
+   60  ./creatingwindow 
+   61  make
+   62  clear
+   63  make
+   64  ./creatingwindow 
+   65  make
+   66  ./creatingwindow 
+   67  make
+   68  clear
+   69  make
+   70  ./creatingwindow 
+   71  make
+   72  clear
+   73  make
+   74  ./creatingwindow 
+   75  make
+   76  clear
+   77  make
+   78  ./creatingwindow 
+   79  make
+   80  ./creatingwindow 
+   81  make
+   82  ./creatingwindow 
+   83  make
+   84  ./creatingwindow 
+   85  clear
+   86  make
+   87  ./creatingwindow 
+   88  clear
+   89  make
+   90  ./creatingwindow 
+   91  make
+   92  ./creatingwindow 
+   93  make
+   94  ./creatingwindow 
+   95  make
+   96  ./creatingwindow 
+   97  make
+   98  ./creatingwindow 
+   99  make
+  100  ./creatingwindow 
+  101  make
+  102  ./creatingwindow 
+  103  make
+  104  ./creatingwindow 
+  105  clear
+  106  make
+  107  ./creatingwindow 
+  108  make
+  109  ./creatingwindow 
+  110  make
+  111  clear
+  112  make
+  113  ./
+  114  clear
+  115  make
+  116  ./creatingwindow 
+  117  clear
+  118  make
+  119  ./creatingwindow 
+  120  clear
+  121  make
+  122  ./creatingwindow 
+  123  clear
+  124  make
+  125  ./creatingwindow 
+  126  clear
+  127  make
+  128  ./creatingwindow 
+  129  clear
+  130  make
+  131  ./creatingwindow 
+  132  make
+  133  ./creatingwindow 
+  134  make
+  135  ./creatingwindow 
+  136  cd downloads
+  137  cd home
+  138  cd Downloads
+  139  ls -l
+  140  cd ..
+  141  ls -l
+  142  clear
+  143  make
+  144  ./creatingwindow 
+  145  make
+  146  clear
+  147  make
+  148  ./creatingwindow 
+  149  make
+  150  clear
+  151  ./creatingwindow 
+  152  make
+  153  ./creatingwindow 
+  154  clear
+  155  make
+  156  ./creatingwindow 
+  157  make
+  158  ./creatingwindow 
+  159  make
+  160  ./creatingwindow 
+  161  make
+  162  ./creatingwindow 
+  163  make
+  164  ./creatingwindow 
+  165  clear
+  166  make
+  167  ./creatingwindow 
+  168  clear
+  169  make
+  170  ./creatingwindow 
+  171  clear
+  172  make
+  173  ./creatingwindow 
+  174  make
+  175  ./creatingwindow 
+  176  make
+  177  ./creatingwindow 
+  178  clear
+  179  ./creatingwindow 
+  180  make
+  181  ./creatingwindow 
+  182  make
+  183  ./creatingwindow 
+  184  make
+  185  ./creatingwindow 
+  186  make
+  187  ./creatingwindow 
+  188  make
+  189  ./creatingwindow 
+  190  clear
+  191  make
+  192  ./creatingwindow 
+  193  clear
+  194  make
+  195  ./creatingwindow 
+  196  make
+  197  ./creatingwindow 
+  198  make
+  199  ./creatingwindow 
+  200  make
+  201  ./creatingwindow 
+  202  make
+  203  ./creatingwindow 
+  204  make
+  205  ./creatingwindow 
+  206  clear
+  207  make
+  208  ./creatingwindow 
+  209  ls -l
+  210  clear
+  211  make
+  212  ./creatingwindow 
+  213  make
+  214  ./creatingwindow 
+  215  make
+  216  ./creatingwindow 
+  217  s
+  218  ./creatingwindow 
+  219  clear
+  220  make
+  221  ./creatingwindow 
+  222  clear
+  223  make
+  224  ./creatingwindow 
+  225  make
+  226  ./creatingwindow 
+  227  make
+  228  ./creatingwindow 
+  229  make
+  230  ./creatingwindow 
+  231  make
+  232  ./creatingwindow 
+  233  make
+  234  ./creatingwindow 
+  235  make
+  236  ./creatingwindow 
+  237  make
+  238  ./creatingwindow 
+  239  make
+  240  clear
+  241  make
+  242  ./creatingwindow 
+  243  make
+  244  ./creatingwindow 
+  245  make
+  246  ./creatingwindow 
+  247  make
+  248  ./creatingwindow 
+  249  make
+  250  ./creatingwindow 
+  251  make
+  252  ./creatingwindow 
+  253  clear
+  254  make
+  255  ./creatingwindow 
+  256  make
+  257  ./creatingwindow 
+  258  make
+  259  ./creatingwindow 
+  260  make
+  261  ./creatingwindow 
+  262  make
+  263  make
+  264  ./creatingwindow 
+  265  make
+  266  ./creatingwindow 
+  267  make
+  268  ./creatingwindow 
+  269  make
+  270  ./creatingwindow 
+  271  make
+  272  ./creatingwindow 
+  273  clear
+  274  make
+  275  ./creatingwindow 
+  276  make
+  277  ./creatingwindow 
+  278  make
+  279  ./creatingwindow 
+  280  make
+  281  ./creatingwindow 
+  282  make
+  283  ./creatingwindow 
+  284  make
+  285  ./creatingwindow 
+  286  make
+  287  ./creatingwindow 
+  288  make
+  289  ./creatingwindow 
+  290  make
+  291  clear
+  292  make
+  293  clear
+  294  make
+  295  clear
+  296  make
+  297  clear
+  298  make
+  299  ././creatingwindow 
+  300  make
+  301  ././creatingwindow 
+  302  ./creatingwindow 
+  303  clear
+  304  make
+  305  ./creatingwindow 
+  306  make
+  307  ./creatingwindow 
+  308  make
+  309  ./creatingwindow 
+  310  make
+  311  ./creatingwindow 
+  312  make
+  313  ./creatingwindow 
+  314  clear
+  315  ./creatingwindow 
+  316  sudo apt install onboard   # Ubuntu/Debian
+  317  onboard
+  318  make
+  319  ./creatingwindow 
+  320  make
+  321  ./creatingwindow 
+  322  clear
+  323  make
+  324  ./creatingwindow 
+  325  make
+  326  ./creatingwindow 
+  327  make
+  328  ./creatingwindow 
+  329  make
+  330  ./creatingwindow 
+  331  make
+  332  ./creatingwindow 
+  333  make
+  334  ./creatingwindow 
+  335  make
+  336  ./creatingwindow 
+  337  make
+  338  ./creatingwindow 
+  339  make
+  340  ./creatingwindow 
+  341  clear
+  342  echo "हिन्दी में टाइप करें "
+  343  echo "gud
+  344  bal"
+  345  make
+  346  ./creatingwindow 
+  347  make
+  348  ./creatingwindow 
+  349  make
+  350  ./creatingwindow 
+  351  make
+  352  ./creatingwindow 
+  353  make
+  354  ./creatingwindow 
+  355  make
+  356  ./creatingwindow 
+  357  make
+  358  ./creatingwindow 
+  359  clear
+  360  make
+  361  ./creatingwindow 
+  362  make
+  363  ./creatingwindow 
+  364  clear
+  365  make
+  366  ./creatingwindow 
+  367  make
+  368  ./creatingwindow 
+  369  make
+  370  ./creatingwindow 
+  371  clear
+  372  make
+  373  ./creatingwindow 
+  374  make
+  375  clear
+  376  make
+  377  ./creatingwindow 
+  378  make
+  379  ./creatingwindow 
+  380  make
+  381  ./creatingwindow 
+  382  make
+  383  ./creatingwindow 
+  384  make
+  385  ./creatingwindow 
+  386  clear
+  387  make
+  388  ./creatingwindow 
+  389  make
+  390  ./creatingwindow 
+  391  make
+  392  ./creatingwindow 
+  393  make
+  394  ./creatingwindow 
+  395  clear
+  396  ./creatingwindow 
+  397  make
+  398  ./creatingwindow 
+  399  clear
+  400  make
+  401  ./creatingwindow 
+  402  clear
+  403  ./creatingwindow 
+  404  make
+  405  ./creatingwindow 
+  406  make
+  407  ./creatingwindow 
+  408  make
+  409  ./creatingwindow 
+  410  make
+  411  ./creatingwindow 
+  412  make
+  413  ./creatingwindow 
+  414  make
+  415  ./creatingwindow 
+  416  make
+  417  ./creatingwindow 
+  418  make
+  419  ./creatingwindow 
+  420  clear
+  421  ./creatingwindow 
+  422  gcc demo.cpp
+  423  ./a.out
+  424  gcc demo.cpp
+  425  ./a.out
+  426  clear
+  427  gcc demo.cpp
+  428  clear
+  429  g++ demo.cpp
+  430  ./a.out
+  431  clear
+  432  g++ demo.cpp
+  433  ./a.out
+  434  g++ demo.cpp
+  435  ./a.out
+  436  g++ demo.cpp
+  437  ./a.out
+  438  g++ 25CS60R67_Q1.cpp
+  439  ./a.out
+  440  clear
+  441  g++ 25CS60R67_q2.cpp
+  442  g++ 25CS60R67_Q2.cpp
+  443  clear
+  444  g++ 25CS60R67_Q2.cpp
+  445  ./a.out
+  446  clear
+  447  g++ 25CS60R67_Q2.cpp
+  448  clear
+  449  g++ 25CS60R67_Q2.cpp
+  450  clear
+  451  g++ 25CS60R67_Q2.cpp
+  452  clear
+  453  g++ 25CS60R67_Q2.cpp
+  454  ./a.out
+  455  g++ 25CS60R67_Q2.cpp
+  456  ./a.out
+  457  clear
+  458  g++ 25CS60R67_Q2.cpp
+  459  ./a.out
+  460  clear
+  461  g++ 25CS60R67_Q2.cpp
+  462  clear
+  463  g++ 25CS60R67_Q2.cpp
+  464  clear
+  465  g++ 25CS60R67_Q2.cpp
+  466  clear
+  467  g++ 25CS60R67_Q2.cpp
+  468  clear
+  469  g++ 25CS60R67_Q2.cpp
+  470  ./a.out
+  471  g++ 25CS60R67_Q2.cpp
+  472  ./a.out
+  473  g++ 25CS60R67_Q2.cpp
+  474  ./a.out
+  475  clear
+  476  g++ 25CS60R67_Q2.cpp
+  477  ./a.out
+  478  [200~#include <X11/Xlib.h>
+  479  #include <X11/keysym.h>
+  480  #include <X11/Xutil.h>
+  481  #include <cstdio>
+  482  #include <err.h>
+  483  #include <string>
+  484  #include <iostream>
+  485  #include <chrono>
+  486  #include <vector>
+  487  #include <bits/stdc++.h>
+  488  #include <unistd.h>
+  489  #include <cctype>
+  490  #include <regex>
+  491  #include <sys/types.h>
+  492  #include <sys/wait.h>
+  493  #include <sstream>
+  494  #include <fstream>
+  495  #include <fcntl.h>
+  496  #include <locale.h>~
+  497  clear
+  498  #include <X11/Xlib.h>
+  499  #include <X11/keysym.h>
+  500  #include <X11/Xutil.h>
+  501  #include <cstdio>
+  502  #include <err.h>
+  503  #include <string>
+  504  #include <iostream>
+  505  #include <chrono>
+  506  #include <vector>
+  507  #include <bits/stdc++.h>
+  508  #include <unistd.h>
+  509  #include <cctype>
+  510  #include <regex>
+  511  #include <sys/types.h>
+  512  #include <sys/wait.h>
+  513  #include <sstream>
+  514  #include <fstream>
+  515  #include <fcntl.h>
+  516  #include <locale.h>
+  517  khanki
+  518  wc -l
+  519  clear
+  520  ls
+  521  abc.txt | wc -l
+  522  [200~sudo apt install fonts-ubuntu
+  523  ~sudo apt install fonts-ubuntu
+  524  sudo apt install fonts-ubuntu
+  525  make
+  526  ./creatingwindow 
+  527  make
+  528  ./creatingwindow 
+  529  make
+  530  ./creatingwindow 
+  531  make
+  532  ./creatingwindow 
+  533  make
+  534  clear
+  535  ./creatingwindow 
+  536  make
+  537  ./creatingwindow 
+  538  make
+  539  ./creatingwindow 
+  540  make
+  541  ./creatingwindow 
+  542  make
+  543  ./creatingwindow 
+  544  make
+  545  ./creatingwindow 
+  546  clear
+  547  make
+  548  ./creatingwindow 
+  549  make
+  550  ./creatingwindow 
+  551  make
+  552  ./creatingwindow 
+  553  make
+  554  ./creatingwindow 
+  555  make
+  556  ./creatingwindow 
+  557  make
+  558  ./creatingwindow 
+  559  make
+  560  ./creatingwindow 
+  561  make
+  562  ./creatingwindow 
+  563  make
+  564  ./creatingwindow 
+  565  make
+  566  ./creatingwindow 
+  567  clear
+  568  make
+  569  clear
+  570  ./creatingwindow
+  571  echo "hello
+  572  gud"
+  573  clear
+  574  make
+  575  ./creatingwindow
+  576  make
+  577  ./creatingwindow
+  578  make
+  579  ./creatingwindow
+  580  make
+  581  ./creatingwindow
+  582  make
+  583  ./creatingwindow
+  584  make
+  585  ./creatingwindow
+  586  make
+  587  ./creatingwindow
+  588  make
+  589  ./creatingwindow
+  590  make
+  591  ./creatingwindow
+  592  make
+  593  ./creatingwindow
+  594  make
+  595  ./creatingwindow
+  596  make
+  597  ./creatingwindow
+  598  make
+  599  ./creatingwindow
+  600  make
+  601  ./creatingwindow
+  602  make
+  603  ./creatingwindow
+  604  make
+  605  make
+  606  ./creatingwindow 
+  607  make
+  608  ./creatingwindow 
+  609  make
+  610  ./creatingwindow 
+  611  make
+  612  ./creatingwindow 
+  613  make
+  614  ./creatingwindow 
+  615  make
+  616  ./creatingwindow 
+  617  make
+  618  ./creatingwindow 
+  619  make
+  620  ./creatingwindow 
+  621  make
+  622  ./creatingwindow 
+  623  fc-list | grep Mono
+  624  sudo apt install libxft-dev
+  625  cd Templates
+  626  cat hello.c | sort | more
+  627  ls *.txt | wc -l
+  628  s *.txt | xargs rm 
+  629  ls *.txt | xargs rm 
+  630  ls
+  631  gedit hello.txt
+  632  ls *.txt | xargs rm 
+  633  ls
+  634  gedit hello.txt
+  635  ls *.txt | xargs rm 
+  636  ls
+  637  gedit hello.txt
+  638  ls *.txt | wc -l
+  639  ls *.txt | wc
+  640  ls *.txt | wc -ls
+  641  ls *.txt | wc 
+  642  ls *.txt | wc -l
+  643  cat hello.c | sort | more
+  644  clear
+  645  make
+  646  ./creatingwindow 
+  647  make
+  648  ./creatingwindow 
+  649  make
+  650  ./creatingwindow 
+  651  clear
+  652  make
+  653  ./creatingwindow 
+  654  make
+  655  ./creatingwindow 
+  656  sudo apt install git
+  657  clear
+  658  git --version
+  659  cd ..
+  660  clear
+  661  cd
+  662  pw
+  663  pwd
+  664  sudo apt install git
+  665  sudo apt update
+  666  cd Templates
+  667  make
+  668  ./creatingwindow 
+  669  cd myterminal
+  670  clear
+  671  make
+  672  ./creatingwindow 
+  673  make
+  674  ./creatingwindow 
+  675  g++ a.cpp
+  676  ./creatingwindow 
+  677  make
+  678  ./creatingwindow 
+  679  make
+  680  ./creatingwindow 
+  681  sudo apt install git
+  682  ps -ef | grep 8121
+  683  sudo kill -9 8121
+  684  sudo apt install git
+  685  sudo apt update
+  686  sudo kill -9 11446
+  687  sudo apt install git
+  688  git --version
+  689  clear
+  690  git config --global user.name "Swagnikghosh"
+  691  git config --global user.email "swagnikghosh705@gmail.com"
+  692  git config --list
+  693  cd Templates
+  694  git clone "https://github.com/Swagnikghosh/myterminal.git"
+  695  cd myterminal
+  696  touch a.c
+  697  git add .
+  698  git commit -m "first commit"
+  699  git push origin main
+  700  echo "gud bal"
+  701  git push origin main
+  702  ls
+  703  cd ..
+  704  ls
+  705  cd myterminal
+  706  ls
+  707  clear
+  708  ls
+  709  git add .
+  710  cd ..
+  711  code .
+  712  cd myterminal
+  713  code .
+  714  make
+  715  ././creatingwindow 
+  716  make
+  717  clear
+  718  ././creatingwindow 
+  719  make
+  720  ././creatingwindow 
+  721  make
+  722  ././creatingwindow 
+  723  make
+  724  ././creatingwindow 
+  725  make
+  726  clear
+  727  make
+  728  ././creatingwindow 
+  729  make
+  730  ././creatingwindow 
+  731  make
+  732  ././creatingwindow 
+  733  make
+  734  ././creatingwindow 
+  735  make
+  736  ././creatingwindow 
+  737  make
+  738  ././creatingwindow 
+  739  make
+  740  ././creatingwindow 
+  741  make
+  742  ././creatingwindow 
+  743  clear
+  744  make
+  745  ././creatingwindow 
+  746  make
+  747  ././creatingwindow 
+  748  make
+  749  ././creatingwindow 
+  750  make
+  751  ././creatingwindow 
+  752  make
+  753  ././creatingwindow 
+  754  make
+  755  ././creatingwindow 
+  756  make
+  757  ././creatingwindow 
+  758  make
+  759  ././creatingwindow 
+  760  make
+  761  ././creatingwindow 
+  762  make
+  763  ././creatingwindow 
+  764  make
+  765  ././creatingwindow 
+  766  make
+  767  ././creatingwindow 
+  768  make
+  769  ././creatingwindow 
+  770  clear
+  771  make
+  772  ././creatingwindow 
+  773  make
+  774  ././creatingwindow 
+  775  make
+  776  ././creatingwindow 
+  777  make
+  778  ././creatingwindow 
+  779  make
+  780  ././creatingwindow 
+  781  clear
+  782  make
+  783  ././creatingwindow 
+  784  make
+  785  ././creatingwindow 
+  786  make
+  787  ././creatingwindow 
+  788  make
+  789  ././creatingwindow 
+  790  echo "gud
+  791  bal"d
+  792  cd Templates
+  793  cd myterminal
+  794  grep "gud" input_log.txt
+  795  grep "gu" input_log.txt
+  796  grep "ls" input_log.txt
+  797  grep "gu" input_log.txt
+  798  grep gu input_log.txt
+  799  grep xyz input_log.txt
+  800  "ls"
+  801  grep xyz input_log.txt
+  802  grep hell input_log.txt
+  803  grep '^prefix' hell input_log.txt
+  804  grep ^hell input_log.txt
+  805  grep '^hell' input_log.txt
+  806  grep '^hello' input_log.txt
+  807  grep '^"hello' input_log.txt
+  808  grep '^"hell' input_log.txt
+  809  clear
+  810  echo "gud
+  811  bal"
+  812  echo "gud
+  813  bal"
+  814  echo "gud
+  815  cal"
+  816  hstory
+  817  history
+  818  cd clear
+  819  clear
+  820  cd Templates
+  821  cs myterminal
+  822  cd myterminal
+  823  cat history > input_log.txt
+  824  cat history
+  825  cd ..
+  826  cat history
+  827  cd Templates
+  828  cd myterminal
+  829  history > input_log.txt
+  830  history
+  831  grep rendi history
+  832  history
+  833  clear
+  834  grep echo history
+  835  grep "rendi" ~/.bash_history
+  836  grep "gud" ~/.bash_history
+  837  clear
+  838  cd Templates
+  839  cd myterminal
+  840  history > input_log.txt
+  841  clear
+  842  ls
+  843  clear
+  844  echo "gud
+  845  clear
+"
+  846  clear
+  847  clear
+"
+  848  clear
+  849  echo "gud
+d"
+  850  clear
+  851  echo "gud 
+  852  echo "gud
+d"
+  853  clear
+  854  ls
+"
+  855  ls
+  856  clear
+  857  echo "gud
+  858  echo "gud
+dd"
+  859  echo "gud
+lll"
+  860  echo "gud
+lll"
+"
+  861  clear
+  862  echo "gud
+lll"
+"
+
+"
+  863  ls
+"
+  864  clear
+  865  ls
+  866  clear
+  867  ls
+  868  clear
+  869  ls
+  870  clear
+  871  ls
+  872  clear

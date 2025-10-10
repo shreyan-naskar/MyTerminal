@@ -25,6 +25,8 @@ int main()
     {
         errx(1, "Cant open display");
     }
+    inputs = loadInputs();
+    // reverse(inputs.begin(), inputs.begin());
 
     scr = DefaultScreen(dpy);
     root = RootWindow(dpy, scr);

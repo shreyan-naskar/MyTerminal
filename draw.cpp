@@ -18,6 +18,7 @@ static Window root;
 static const int ROWS = 24; // visible lines
 string input;
 int currCursorPos = 0;
+bool isSearching = false;
 
 #define POSX 500
 #define POSY 500
@@ -228,24 +229,40 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
             counted += lines[i].size() + 1; // +1 for '\n'
         }
 
-        // ---- FIXED: handle prompt offset only for the first line ----
+        // -------------------------------------
+        // FIXED CURSOR POSITIONING CODE
+        // -------------------------------------
         string uptoCursor;
+        int pxWidth = 0; // total pixel width before cursor
+
         if (curLine == 0)
-            uptoCursor = prompt + lines[curLine].substr(0, curCol);
+        {
+            if (isSearching)
+            {
+                // Search mode: measure after "Enter search term:"
+                string searchPrompt = "Enter search term:";
+                int promptWidth = XTextWidth(font, searchPrompt.c_str(), searchPrompt.size());
+
+                uptoCursor = lines[curLine].substr(0, curCol);
+                int textWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
+
+                pxWidth = promptWidth + textWidth; // final pixel width
+            }
+            else
+            {
+                uptoCursor = prompt + lines[curLine].substr(0, curCol);
+                pxWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
+            }
+        }
         else
+        {
             uptoCursor = lines[curLine].substr(0, curCol);
+            pxWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
+        }
 
-        // Measure pixel width
-        int pxWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
-
-        // Compute where to draw cursor
+        // Draw the cursor
         int cursorX = marginLeft + pxWidth;
         int cursorLineIndex = totalLines - (lines.size() - curLine);
-
-        if (cursorLineIndex < start)
-            scrollOffset = max(0, cursorLineIndex - 1);
-        if (cursorLineIndex >= end)
-            scrollOffset = max(0, cursorLineIndex - visibleRows + 1);
 
         if (cursorLineIndex >= start && cursorLineIndex < end)
         {
@@ -257,6 +274,5 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
             XDrawLine(dpy, win, gc, cursorX, yTop, cursorX, yBottom);
         }
     }
-
     return totalLines;
 }
