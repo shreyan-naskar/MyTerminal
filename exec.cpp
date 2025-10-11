@@ -19,12 +19,6 @@
 #include <regex>
 using namespace std;
 
-string stripANSI(const string &s)
-{
-    static const regex ansi("\x1b\\[[0-9;]*[A-Za-z]");
-    return regex_replace(s, ansi, "");
-}
-
 vector<string> execCommand(const string &cmd)
 {
     if (cmd.empty())

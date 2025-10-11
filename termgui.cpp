@@ -30,6 +30,7 @@ int main()
 
     scr = DefaultScreen(dpy);
     root = RootWindow(dpy, scr);
+    
     win = create_window(POSX, POSY, WIDTH, HEIGHT, BORDER);
     XStoreName(dpy, win, "shreTerm");
     chdir("/");

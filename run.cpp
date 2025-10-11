@@ -20,144 +20,11 @@
 
 #include "exec.cpp"
 #include "draw.cpp"
-
-const string FILENAME = "/home/shreyan10/Desktop/GITHUB/MyTerminal/input_log.txt";
+#include "helper_funcs.cpp"
 using namespace std;
-vector<string> inputs;
-string stripQuotes(const string &s)
-{
-    if (s.size() >= 2 && s.front() == '"' && s.back() == '"')
-        return s.substr(1, s.size() - 2);
-    return s;
-}
-
-// Compute length of common prefix of two strings
-int commonPrefixLength(const string &a, const string &b)
-{
-    int len = min(a.size(), b.size());
-    for (int i = 0; i < len; ++i)
-        if (a[i] != b[i])
-            return i;
-    return len;
-}
-
-// Search history file for exact match or longest prefix (ignoring quotes)
-string searchHistory(const string &input, const string &filename = FILENAME)
-{
-    ifstream in(filename);
-    if (!in)
-        return "No match for search term in history";
-
-    vector<string> history;
-    string line;
-
-    while (getline(in, line))
-    {
-        // Find the first character that is NOT a digit or space
-        size_t pos = line.find_first_not_of(" 0123456789");
-        if (pos != string::npos)
-            history.push_back(line.substr(pos)); // push from first non-digit, non-space
-        else
-            history.push_back(""); // line was all digits/spaces
-    }
-    in.close();
-
-    string exactMatch = "";
-    vector<string> candidates;
-    int maxPrefixLen = 0;
-
-    // Traverse from the end (most recent first)
-    for (auto it = history.rbegin(); it != history.rend(); ++it)
-    {
-        string cmd = *it;
-
-        if (cmd == input)
-        {
-            exactMatch = cmd;
-            break;
-        }
-
-        int prefixLen = commonPrefixLength(cmd, input);
-        if (prefixLen > maxPrefixLen)
-        {
-            maxPrefixLen = prefixLen;
-            candidates.clear();
-            candidates.push_back(cmd);
-        }
-        else if (prefixLen == maxPrefixLen)
-        {
-            candidates.push_back(cmd);
-        }
-    }
-
-    if (!exactMatch.empty())
-        return exactMatch;
-
-    if (maxPrefixLen >= 2)
-        return candidates[0]; // most recent with longest prefix
-
-    return "No match for search term in history";
-}
-
-// Store input (each line in quotes)
-int getLastHistoryNumber()
-{
-    ifstream in(FILENAME);
-    if (!in)
-        return 0;
-
-    string line;
-    int lastNum = 0;
-    while (getline(in, line))
-    {
-        istringstream iss(line);
-        int num;
-        if (iss >> num)
-        {
-            lastNum = max(lastNum, num);
-        }
-    }
-    in.close();
-    return lastNum;
-}
-
-// Store input with incremental history number (space separated)
-void storeInput(const string &input)
-{
-    int histNum = getLastHistoryNumber() + 1;
-
-    ofstream out(FILENAME, ios::app);
-    if (!out)
-    {
-        cerr << "Error opening file for writing.\n";
-        return;
-    }
-    out << "  " << histNum << "  " << input << endl; // tab-separated
-    out.close();
-}
-
-// Load inputs into vector (ignoring history number)
-vector<string> loadInputs()
-{
-    ifstream in(FILENAME);
-    vector<string> inputs;
-    if (!in)
-        return inputs;
-
-    string line;
-    while (getline(in, line))
-    {
-        // Find the first character that is NOT a digit or space
-        size_t pos = line.find_first_not_of(" 0123456789");
-        if (pos != string::npos)
-            inputs.push_back(line.substr(pos)); // push from first non-digit, non-space
-        else
-            inputs.push_back(""); // line was all digits/spaces
-    }
-
-    in.close();
-    return inputs;
-}
+vector<string> inputs, recs;
+string query = "";
+string forRec = "";
 
 static const int SCROLL_STEP = 3; // lines per wheel/page step
 
@@ -215,6 +82,7 @@ static void run(Window win)
 
     int totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
     bool isMultLine = false;
+    bool inRec = false;
     int count = 0;
     while (running)
     {
@@ -483,16 +351,63 @@ static void run(Window win)
                     totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                     break;
                 }
+                if (keysym == XK_Tab)
+                {
+                    if (!input.empty())
+                    {
+                        inRec = true;
+                        query = getQuery(input);
+                        forRec = input;
 
+                        vector<string> candidates = execCommand("ls");
+
+                        recs = getRecomm(query, candidates);
+                        if (recs.empty())
+                        {
+                            inRec = false;
+                        }
+                        else if (recs.size() == 1)
+                        {
+                            input += recs[0].substr(query.size());
+                            screenBuffer.back() += recs[0].substr(query.size());
+                            inRec = false;
+                            currCursorPos = input.size();
+                        }
+                        else
+                        {
+                            string showRec = "";
+                            for (size_t i = 0; i < recs.size(); i++)
+                            {
+                                showRec = showRec + to_string(i + 1) + ". " + recs[i] + ' ';
+                            }
+                            screenBuffer.push_back(showRec + " : ");
+                            currCursorPos = input.size() - 1;
+                        }
+                    }
+                    break;
+                }
                 // --- printable/character handling ---
                 if ((status == XLookupChars || status == XLookupBoth) && len > 0)
                 {
                     // ENTER / RETURN
                     if (wbuf[0] == L'\r' || wbuf[0] == L'\n')
                     {
+                        if (inRec)
+                        {
+                            cout << input;
+                            int recIdx = min(getRecIdx(input), int(recs.size())) - 1;
+                            string rec = recs[recIdx];
+                            input = forRec + rec.substr(query.size());
+                            string cwd = getPWD();
+                            string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
+                            screenBuffer.push_back(prompt + input);
+                            currCursorPos = input.size();
+
+                            inRec = false;
+                            continue;
+                        }
                         if (isSearching)
                         {
-
                             string search_res = searchHistory(input);
                             input = "";
                             string cwd = getPWD();
@@ -538,7 +453,10 @@ static void run(Window win)
                             if (!input.empty())
                             {
                                 if (inputs.empty() || inputs.back() != input)
+                                {
+                                    storeInput(input);
                                     inputs.push_back(input);
+                                }
                             }
                             count = 0;
                             inpIdx = inputs.size();
@@ -656,6 +574,15 @@ static void run(Window win)
 
                     // Regular printable char
                     char ch = (char)wbuf[0];
+                    if (inRec)
+                    {
+
+                        input.insert(input.begin() + currCursorPos, ch);
+                        screenBuffer.back() += ch;
+                        currCursorPos++;
+
+                        continue;
+                    }
                     if (isSearching)
                     {
                         input.insert(input.begin() + currCursorPos, ch);

@@ -884,3 +884,190 @@ lll"
   870  clear
   871  ls
   872  clear
+  873  cd Desktop/GITHUB/MyTerminal
+    874  cd
+  875  echo gud
+  876  cd
+  877  cd Desktop/GITHUB/MyTerminal
+  878  python3 a.py
+  879  cd
+  880  cd Desktop/GITHUB/MyTerminal
+  881  python3 a.py
+  882  clear
+  883  cd
+  884  cd Desktop/GITHUB/MyTerminal
+  885  python3 a.py
+  886  cd
+  887  cd Desktop/GITHUB/MyTerminal
+  888  python3 a.py
+  889  cd
+  890  cd Desktop/GITHUB/MyTerminal
+  891  cd
+  892  cd Desktop/GITHUB/MyTerminal
+  893  python3 a.py
+  894  cd
+  895  cd Desktop/GITHUB/MyTerminal
+  896  python3 a.py
+  897  cd
+  898  cd Desktop/GITHUB/MyTerminal
+  899  python3 a.py
+  900  clear
+  901  echo "gud
+bal"
+  902  cd
+  903  cd Desktop/GITHUB/MyTerminal
+  904  ls
+  905  cd
+  906  cd Desktop/GITHUB/MyTerminal
+  907  cd
+  908  cd Desktop/GITHUB/MyTerminal
+  909  ls
+  910  cd
+  911  cd Desktop/GITHUB/MyTerminal
+  912  cd
+  913  cd Desktop/GITHUB/MyTerminal
+  914  cd
+  915  cd Desktop/GITHUB/MyTerminal
+  916  cd
+  917  cd Desktop/GITHUB/MyTerminal
+  918  cd
+  919  cd Desktop/GITHUB/MyTerminal
+  920  cd
+  921  cd Desktop/GITHUB/MyTerminal
+  922  cd
+  923  cd Desktop/GITHUB/MyTerminal
+  924  cd
+  925  cd Desktop/GITHUB/MyTerminal
+  926  cd
+  927  cd Desktop/GITHUB/MyTerminal
+  928  cd
+  929  cd Desktop/GITHUB/MyTerminal
+  930  ls
+  931  cat draw.cpp
+  932  clear
+  933  cat draw.cpp
+  934  cd
+  935  cd Desktop/GITHUB/MyTerminal
+  936  cd
+  937  cd Desktop/GITHUB/MyTerminal
+  938  cat draw.cpp
+  939  clear
+  940  cd
+  941  cd Desktop/GITHUB/MyTerminal
+  942  cat draw.cpp
+  943  cd
+  944  cd Desktop/GITHUB/MyTerminal
+  945  cd
+  946  cd Desktop/GITHUB/MyTerminal
+  947  ls
+  948  cd
+  949  cd Desktop/GITHUB/MyTerminal
+  950  cd
+  951  cd Desktop/GITHUB/MyTerminal
+  952  cd
+  953  cd Desktop/GITHUB/MyTerminal
+  954  cd
+  955  cd Desktop/GITHUB/MyTerminal
+  956  draw.cpp
+  957  cat draw.cpp
+  958  cd
+  959  cd Desktop/GITHUB/MyTerminal
+  960  clear
+  961  cd
+  962  cd Desktop/GITHUB/MyTerminal
+  963  clear
+  964  echo "gud"
+  965  cat draw.cpp
+  966  clear
+  967  cd
+  968  cd Desktop/GITHUB/MyTerminal
+  969  clear
+  970  cd
+  971  cd Desktop/GITHUB/MyTerminal
+  972  clear
+  973  cd
+  974  cd Desktop/GITHUB/MyTerminal
+  975  cd
+  976  cd Desktop/GITHUB/MyTerminal
+  977  cd
+  978  cd Desktop/GITHUB/MyTerminal
+  979  cat term
+  980  ls
+  981  cd
+  982  cd Desktop/GITHUB/MyTerminal
+  983  cd
+  984  cd Desktop/GITHUB/MyTerminal
+  985  cd
+  986  cd Desktop/GITHUB/MyTerminal
+  987  cat term
+  988  cd
+  989  cd Desktop/GITHUB/MyTerminal
+  990  cd
+  991  cd Desktop/GITHUB/MyTerminal
+  992  cd
+  993  cd Desktop/GITHUB/MyTerminal
+  994  cd
+  995  cd Desktop/GITHUB/MyTerminal
+  996  cd
+  997  cd Desktop/GITHUB/MyTerminal
+  998  cd
+  999  cd Desktop/GITHUB/MyTerminal
+  1000  cd
+  1001  cd Desktop/GITHUB/MyTerminal
+  1002  cd
+  1003  cd Desktop/GITHUB/MyTerminal
+  1004  cd
+  1005  cd Desktop/GITHUB/MyTerminal
+  1006  cd
+  1007  cd Desktop/GITHUB/MyTerminal
+  1008  cd
+  1009  cd Desktop/GITHUB/MyTerminal
+  1010  cd
+  1011  cd Desktop/GITHUB/MyTerminal
+  1012  cd
+  1013  cd Desktop/GITHUB/MyTerminal
+  1014  cd
+  1015  cd Desktop/GITHUB/MyTerminal
+  1016  cd
+  1017  cd Desktop/GITHUB/MyTerminal
+  1018  cd
+  1019  cd Desktop/GITHUB/MyTerminal
+  1020  cd
+  1021  cd Desktop/GITHUB/MyTerminal
+  1022  termgui
+  1023  cat termgui.cpp
+  1024  clear
+  1025  cat draw.cpp
+  1026  clear
+  1027  cd Desktop/GITHUB/MyTerminal
+  1028  cd
+  1029  cd Desktop/GITHUB/MyTerminal
+  1030  cd
+  1031  cd Desktop/GITHUB/MyTerminal
+  1032  cd
+  1033  cd Desktop/GITHUB/MyTerminal
+  1034  clear
+  1035  cat termgui.cpp
+  1036  clear
+  1037  cat draw.cpp
+  1038  clear
+  1039  cat termgui.o
+  1040  clear
+  1041  cd
+  1042  cd Desktop/GITHUB/MyTerminal
+  1043  cd
+  1044  cd Desktop/GITHUB/MyTerminal
+  1045  cd
+  1046  cd Desktop/GITHUB/MyTerminal
+  1047  cd
+  1048  cd Desktop/GITHUB/MyTerminal
+  1049  hvshvsi
+  1050  rendi
+  1051  cd
+  1052  cd Desktop/GITHUB/MyTerminal
+  1053  fvfvsfv\
+  1054  cd
+  1055  fvfvsfv\
+  1056  cd Desktop/GITHUB/MyTerminal
+  1057  cat draw.cpp
+  1058  clear
