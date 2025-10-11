@@ -82,7 +82,7 @@ static void run(Window win)
 
     int totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
     bool isMultLine = false;
-    bool inRec = false;
+    // bool inRec = false;
     int count = 0;
     while (running)
     {
@@ -232,7 +232,7 @@ static void run(Window win)
                 // --- inputs navigation (Up/Down) ---
                 if (keysym == XK_Up)
                 {
-                    if (isSearching == 1)
+                    if (isSearching == 1 || inRec == 1)
                     {
                         continue;
                     }
@@ -259,10 +259,11 @@ static void run(Window win)
                 }
                 if (keysym == XK_Down)
                 {
-                    if (isSearching == 1)
+                    if (isSearching == 1 || inRec == 1)
                     {
                         continue;
                     }
+
                     if (!inputs.empty())
                     {
                         isMultLine = false;
@@ -357,6 +358,11 @@ static void run(Window win)
                     {
                         inRec = true;
                         query = getQuery(input);
+                        
+                        if (query == input && query.find("./", 0) == 0)
+                        {
+                            query = query.substr(2);
+                        }
                         forRec = input;
 
                         vector<string> candidates = execCommand("ls");
@@ -375,14 +381,26 @@ static void run(Window win)
                         }
                         else
                         {
-                            string showRec = "";
+                            // Build and show recommendation list
                             for (size_t i = 0; i < recs.size(); i++)
                             {
-                                showRec = showRec + to_string(i + 1) + ". " + recs[i] + ' ';
+                                showRec += to_string(i + 1) + ". " + recs[i] + "  ";
                             }
-                            screenBuffer.push_back(showRec + " : ");
-                            currCursorPos = input.size() - 1;
+
+                            // Push list of completions
+                            screenBuffer.push_back(showRec);
+
+                            // Now push an empty line for user to type their choice
+                            screenBuffer.push_back("Choose from above options:");
+
+                            // Reset input for this new line
+                            input.clear();
+                            currCursorPos = 0;
+                            showRec.clear();
+
+                            // You're now in "selection" mode (inRec = true)
                         }
+                        totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
                     }
                     break;
                 }
@@ -394,12 +412,15 @@ static void run(Window win)
                     {
                         if (inRec)
                         {
-                            cout << input;
+                            // cout << input;
                             int recIdx = min(getRecIdx(input), int(recs.size())) - 1;
                             string rec = recs[recIdx];
                             input = forRec + rec.substr(query.size());
                             string cwd = getPWD();
                             string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
+                            screenBuffer.pop_back();
+                            screenBuffer.pop_back();
+                            screenBuffer.pop_back();
                             screenBuffer.push_back(prompt + input);
                             currCursorPos = input.size();
 
@@ -547,6 +568,15 @@ static void run(Window win)
                     if (wbuf[0] == 8 || wbuf[0] == 127)
                     {
                         if (isSearching && !input.empty())
+                        {
+                            string curr = screenBuffer.back();
+                            screenBuffer.pop_back();
+                            input.erase(input.begin() + currCursorPos - 1);
+                            screenBuffer.push_back(curr.substr(0, curr.size() - 1));
+                            currCursorPos--;
+                            continue;
+                        }
+                        if (inRec && !input.empty())
                         {
                             string curr = screenBuffer.back();
                             screenBuffer.pop_back();

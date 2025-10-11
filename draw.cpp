@@ -19,7 +19,8 @@ static const int ROWS = 24; // visible lines
 string input;
 int currCursorPos = 0;
 bool isSearching = false;
-
+bool inRec = false;
+string showRec = "";
 #define POSX 500
 #define POSY 500
 #define WIDTH 500
@@ -241,6 +242,18 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
             {
                 // Search mode: measure after "Enter search term:"
                 string searchPrompt = "Enter search term:";
+                int promptWidth = XTextWidth(font, searchPrompt.c_str(), searchPrompt.size());
+
+                uptoCursor = lines[curLine].substr(0, curCol);
+                int textWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
+
+                pxWidth = promptWidth + textWidth; // final pixel width
+            }
+            else if (inRec)
+            {
+                // Search mode: measure after "Enter search term:"
+                // string searchPrompt = "Enter search term:";
+                string searchPrompt = "Choose from above options:";
                 int promptWidth = XTextWidth(font, searchPrompt.c_str(), searchPrompt.size());
 
                 uptoCursor = lines[curLine].substr(0, curCol);

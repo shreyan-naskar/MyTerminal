@@ -50,7 +50,7 @@ int getRecIdx(string inp)
         
     }
 
-    return stoi(recIdx);
+    return !recIdx.empty() ? stoi(recIdx) : 1;
 }
 
 vector<string> getRecomm(string query, vector<string> list)

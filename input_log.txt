@@ -1071,3 +1071,92 @@ bal"
   1056  cd Desktop/GITHUB/MyTerminal
   1057  cat draw.cpp
   1058  clear
+  1059  cd
+  1060  cd Desktop/GITHUB/MyTerminal
+  1061  clear
+  1062  cd
+  1063  cd Desktop/GITHUB/MyTerminal
+  1064  cd
+  1065  cd Desktop/GITHUB/MyTerminal
+  1066  cd
+  1067  cd Desktop/GITHUB/MyTerminal
+  1068  cd
+  1069  ls
+  1070  cd
+  1071  cd Desktop/GITHUB/MyTerminal
+  1072  cd
+  1073  cd Desktop/GITHUB/MyTerminal
+  1074  cd
+  1075  cd Desktop/GITHUB/MyTerminal
+  1076  cd
+  1077  cd Desktop/GITHUB/MyTerminal
+  1078  cd
+  1079  cd Desktop/GITHUB/MyTerminal
+  1080  cd
+  1081  cd Desktop/GITHUB/MyTerminal
+  1082  cd
+  1083  cd Desktop/GITHUB/MyTerminal
+  1084  cd
+  1085  cd Desktop/GITHUB/MyTerminal
+  1086  cd
+  1087  cd Desktop/GITHUB/MyTerminal
+  1088  cd
+  1089  cd Desktop/GITHUB/MyTerminal
+  1090  cat term
+  1091  cd
+  1092  cd Desktop/GITHUB/MyTerminal
+  1093  cat termgui.cpp
+  1094  clear
+  1095  cd
+  1096  cd Desktop/GITHUB/MyTerminal
+  1097  cat termgui.o
+  1098  clear
+  1099  cd
+  1100  cd Desktop/GITHUB/MyTerminal
+  1101  cd
+  1102  cd Desktop/GITHUB/MyTerminal
+  1103  cd
+  1104  cd Desktop/GITHUB/MyTerminal
+  1105  cd
+  1106  cd Desktop/GITHUB/MyTerminal
+  1107  cd
+  1108  cd Desktop/GITHUB/MyTerminal
+  1109  cat draw.cpp
+  1110  cat term
+  1111  clear
+  1112  cat
+  1113  cd
+  1114  cd Desktop/GITHUB/MyTerminal
+  1115  cat termgui.cpp
+  1116  cd
+  1117  cat termgui.cpp
+  1118  cd Desktop/GITHUB/MyTerminal
+  1119  ./ termgui
+  1120  ./ termgui.o
+  1121  ./termgui.o
+  1122  ./termgui
+  1123  clear
+  1124  ./ termgui
+  1125  cd
+  1126  cd Desktop/GITHUB/MyTerminal
+  1127  cd
+  1128  cd Desktop/GITHUB/MyTerminal
+  1129  ./termgui
+  1130  ljvslvbs
+  1131  vsk
+  1132  ksnv
+  1133  clear
+  1134  ./termgui.o
+  1135  ./termgui
+  1136  cat helper_funcs.cpp
+  1137  cat termgui.oclear
+  1138  clear
+  1139  cd Desktop/GITHUB/MyTerminalclear
+  1140  clear
+  1141  ./termgui
+  1142  cd
+  1143  cd Desktop/GITHUB/MyTerminalclear
+  1144  cd Desktop/GITHUB/MyTerminal
+  1145  ./termgui
+  1146  cd /
+  1147  cd
