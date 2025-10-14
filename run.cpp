@@ -1,564 +1,458 @@
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <X11/Xutil.h>
-#include <cstdio>
-#include <err.h>
-#include <string>
-#include <iostream>
-#include <chrono>
-#include <vector>
-#include <bits/stdc++.h>
-#include <unistd.h>
-#include <cctype>
-#include <regex>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sstream>
-#include <fstream>
-#include <fcntl.h>
-#include <locale.h>
-
-#include "exec.cpp"
+#include "headers.cpp"
 #include "draw.cpp"
-#include "helper_funcs.cpp"
-using namespace std;
-vector<string> inputs, recs;
-string query = "";
-string forRec = "";
+#include "exec.cpp"
 
-static const int SCROLL_STEP = 3; // lines per wheel/page step
-
-static void run(Window win)
+int run(Window win)
 {
-    int inpIdx = inputs.size() - 1;
-    XSelectInput(dpy, win, ExposureMask | KeyPressMask | ButtonPressMask);
+    // font + gc
+    XFontStruct *font = XLoadQueryFont(dpy, "8x16");
+    if (!font) font = XLoadQueryFont(dpy, "fixed");
+    GC gc = XCreateGC(dpy, win, 0, nullptr);
+    XSetFont(dpy, gc, font->fid);
+    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
 
-    // --- XIM/XIC setup ---
+    // XIM/XIC
     XIM xim = XOpenIM(dpy, nullptr, nullptr, nullptr);
-    if (!xim)
-        std::cerr << "XOpenIM failed — continuing without input method\n";
-
+    if (!xim) std::cerr << "XOpenIM failed — continuing without input method\n";
     XIC xic = nullptr;
     if (xim)
     {
-        xic = XCreateIC(xim,
-                        XNInputStyle,
-                        XIMPreeditNothing | XIMStatusNothing,
-                        XNClientWindow, win,
-                        XNFocusWindow, win,
-                        nullptr);
-        if (!xic)
-            std::cerr << "XCreateIC failed — continuing without input context\n";
+        xic = XCreateIC(xim, XNInputStyle, XIMPreeditNothing | XIMStatusNothing,
+                        XNClientWindow, win, XNFocusWindow, win, nullptr);
+        if (!xic) std::cerr << "XCreateIC failed — continuing without input context\n";
     }
-
-    XFontStruct *font = XLoadQueryFont(dpy, "8x16");
-    if (!font)
-        font = XLoadQueryFont(dpy, "fixed");
-
-    vector<string> screenBuffer;
-    string s = getPWD();
-    if (s == "/")
-    {
-        screenBuffer.push_back("shre@Term:" + getPWD() + "$ ");
-    }
-    else
-    {
-        screenBuffer.push_back("shre@Term:~" + getPWD() + "$ ");
-    }
-
-    GC gc = XCreateGC(dpy, win, 0, nullptr);
-    XSetFont(dpy, gc, font->fid);
-    XSetForeground(dpy, gc, WhitePixel(dpy, scr)); // default
 
     XMapWindow(dpy, win);
 
-    bool running = true;
-    bool showCursor = true;
-    auto lastBlink = std::chrono::steady_clock::now();
-    XEvent event;
+    // initial tab
+    add_tab("/");
 
-    int scrollOffset = 0;
-    bool userScrolled = false;
-
-    int totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-    bool isMultLine = false;
-    // bool inRec = false;
-    int count = 0;
-    while (running)
+    // event loop
+    while (true)
     {
-        if (XPending(dpy) > 0)
+        while (XPending(dpy) > 0)
         {
-            XNextEvent(dpy, &event);
+            XEvent event; XNextEvent(dpy, &event);
 
-            switch (event.type)
+            if (event.type == Expose)
             {
-            case Expose:
-                totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                break;
-
-            case ButtonPress:
-            {
-                XWindowAttributes attrs;
-                XGetWindowAttributes(dpy, win, &attrs);
-                int lineHeight = font->ascent + font->descent;
-                int visibleRows = max(1, (attrs.height - 30) / lineHeight);
-
-                if (event.xbutton.button == Button4)
-                { // wheel up
-                    scrollOffset = max(0, scrollOffset - SCROLL_STEP);
-                    userScrolled = true;
-                    drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                }
-                else if (event.xbutton.button == Button5)
-                { // wheel down
-                    scrollOffset = min(max(0, totalDisplayLines - visibleRows),
-                                       scrollOffset + SCROLL_STEP);
-                    if (scrollOffset >= max(0, totalDisplayLines - visibleRows))
-                        userScrolled = false;
-                    drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                }
-                break;
+                XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
+                // draw navbar and tabs
+                draw_navbar(win, gc, wa.width);
+                auto tpos = draw_tabs(win, gc, font);
+                // draw active tab content
+                if (active_tab >= 0 && active_tab < (int)tabs.size())
+                    drawScreen(win, gc, font, tabs[active_tab]);
             }
-
-            case KeyPress:
+            else if (event.type == ConfigureNotify)
             {
-                // helper: look up chars
+                // window resized: redraw all
+                XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
+                draw_navbar(win, gc, wa.width);
+                auto tpos = draw_tabs(win, gc, font);
+                if (active_tab >= 0 && active_tab < (int)tabs.size())
+                    drawScreen(win, gc, font, tabs[active_tab]);
+            }
+            else if (event.type == ButtonPress)
+            {
+                // navbar test first
+                XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
+                auto tpos = draw_tabs(win, gc, font);
+                int hit = navbar_hit_test(win, event.xbutton.x, event.xbutton.y, tpos, font);
+                if (hit == -1)
+                {
+                    add_tab("/");
+                    draw_navbar(win, gc, wa.width);
+                    tpos = draw_tabs(win, gc, font);
+                    drawScreen(win, gc, font, tabs[active_tab]);
+                    continue;
+                }
+                else if (hit >= 0)
+                {
+                    if (hit < (int)tabs.size()) active_tab = hit;
+                    draw_navbar(win, gc, wa.width);
+                    tpos = draw_tabs(win, gc, font);
+                    drawScreen(win, gc, font, tabs[active_tab]);
+                    continue;
+                }
+
+                // content area events (scroll)
+                if (active_tab >= 0 && active_tab < (int)tabs.size())
+                {
+                    TabState &T = tabs[active_tab];
+
+                    int lineHeight = font->ascent + font->descent;
+                    int visibleRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
+
+                    if (event.xbutton.button == Button4)
+                    { // wheel up
+                        T.scrollOffset = max(0, T.scrollOffset - SCROLL_STEP);
+                        T.userScrolled = true;
+                        drawScreen(win, gc, font, T);
+                    }
+                    else if (event.xbutton.button == Button5)
+                    { // wheel down
+                        int totalDisplayLines = drawScreen(win, gc, font, T); // we also get count
+                        T.scrollOffset = min(max(0, totalDisplayLines - visibleRows),
+                                            T.scrollOffset + SCROLL_STEP);
+                        if (T.scrollOffset >= max(0, totalDisplayLines - visibleRows))
+                            T.userScrolled = false;
+                        drawScreen(win, gc, font, T);
+                    }
+                }
+            }
+            else if (event.type == KeyPress)
+            {
+                if (!(active_tab >= 0 && active_tab < (int)tabs.size()))
+                    continue;
+
+                TabState &T = tabs[active_tab];
+
+                // input lookup (wide)
                 wchar_t wbuf[32];
                 KeySym keysym = 0;
                 Status status = 0;
                 int len = 0;
-                if (xic)
-                {
-                    len = XwcLookupString(xic, &event.xkey, wbuf, 32, &keysym, &status);
-                }
-                else
-                {
-                    len = 0;
-                    keysym = event.xkey.keycode;
-                }
+                if (xic) len = XwcLookupString(xic, &event.xkey, wbuf, 32, &keysym, &status);
+                else { len = 0; keysym = event.xkey.keycode; }
 
-                // local window metrics
-                XWindowAttributes attrs;
-                XGetWindowAttributes(dpy, win, &attrs);
+                // metrics
+                XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
                 int lineHeight = font->ascent + font->descent;
-                int visibleRows = max(1, (attrs.height - 30) / lineHeight);
+                int visibleRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
 
-                // --- helper to rebuild screenBuffer from input ---
                 auto rebuildScreenBuffer = [&]()
                 {
-                    // remove the last prompt/input lines and rebuild
-                    // We want the visible buffer to contain previous outputs unchanged,
-                    // and the last N lines to show the prompt + input split by '\n'.
-                    // We'll remove trailing lines until we find a line that starts with the prompt prefix.
-                    while (!screenBuffer.empty() && screenBuffer.back().rfind("shre@Term:", 0) != 0)
-                    {
-                        screenBuffer.pop_back();
-                    }
-                    if (!screenBuffer.empty())
-                    {
-                        screenBuffer.pop_back(); // remove the prompt line (we'll rebuild it)
-                    }
+                    while (!T.screenBuffer.empty() && T.screenBuffer.back().rfind("shre@Term:", 0) != 0)
+                        T.screenBuffer.pop_back();
+                    if (!T.screenBuffer.empty()) T.screenBuffer.pop_back();
 
-                    // build prompt
-                    string cwd = getPWD();
-                    string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
+                    string sdisp = formatPWD(T.cwd);
+                    string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
 
-                    // split input by '\n'
                     vector<string> parts;
-                    size_t last = 0;
-                    size_t p;
-                    while ((p = input.find('\n', last)) != string::npos)
+                    size_t last = 0, p;
+                    while ((p = T.input.find('\n', last)) != string::npos)
                     {
-                        parts.push_back(input.substr(last, p - last));
+                        parts.push_back(T.input.substr(last, p - last));
                         last = p + 1;
                     }
-                    parts.push_back(input.substr(last));
+                    parts.push_back(T.input.substr(last));
 
-                    if (parts.empty())
-                    {
-                        // always show a prompt line, even for empty input
-                        screenBuffer.push_back(prompt);
-                        return;
-                    }
+                    if (parts.empty()) { T.screenBuffer.push_back(prompt); return; }
 
                     for (size_t i = 0; i < parts.size(); ++i)
                     {
-                        if (i == 0)
-                        {
-                            screenBuffer.push_back(prompt + parts[i]);
-                        }
-                        else
-                        {
-                            screenBuffer.push_back(parts[i]);
-                        }
+                        if (i == 0) T.screenBuffer.push_back(prompt + parts[i]);
+                        else T.screenBuffer.push_back(parts[i]);
                     }
                 };
-                // Escape quits
-                if (keysym == XK_Escape)
-                    running = false;
-                // --- navigation keys that don't rely on characters ---
+
+                // Escape: exit app
+                if (keysym == XK_Escape) {
+                    // soft-exit: close current tab if >1, else exit
+                    if (tabs.size() > 1) {
+                        tabs.erase(tabs.begin() + active_tab);
+                        if (active_tab >= (int)tabs.size()) active_tab = (int)tabs.size() - 1;
+                        draw_navbar(win, gc, wa.width);
+                        auto tpos = draw_tabs(win, gc, font);
+                        if (!tabs.empty()) drawScreen(win, gc, font, tabs[active_tab]);
+                        continue;
+                    } else {
+                        return 0;
+                    }
+                }
+
+                // PageUp/Down, Home/End
                 if (keysym == XK_Page_Up)
                 {
-                    scrollOffset = max(0, scrollOffset - SCROLL_STEP * 5);
-                    userScrolled = true;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    T.scrollOffset = max(0, T.scrollOffset - SCROLL_STEP * 5);
+                    T.userScrolled = true;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
                 else if (keysym == XK_Page_Down)
                 {
-                    scrollOffset = min(max(0, totalDisplayLines - visibleRows), scrollOffset + SCROLL_STEP * 5);
-                    if (scrollOffset >= max(0, totalDisplayLines - visibleRows))
-                        userScrolled = false;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    int totalDisplayLines = drawScreen(win, gc, font, T);
+                    T.scrollOffset = min(max(0, totalDisplayLines - visibleRows), T.scrollOffset + SCROLL_STEP * 5);
+                    if (T.scrollOffset >= max(0, totalDisplayLines - visibleRows)) T.userScrolled = false;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
                 else if (keysym == XK_Home && (event.xkey.state & ControlMask))
                 {
-                    // Ctrl+Home -> go to top of buffer
-                    scrollOffset = 0;
-                    userScrolled = true;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    T.scrollOffset = 0;
+                    T.userScrolled = true;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
                 else if (keysym == XK_End && (event.xkey.state & ControlMask))
                 {
-                    // Ctrl+End -> go to bottom
-                    scrollOffset = max(0, totalDisplayLines - visibleRows);
-                    userScrolled = false;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    int totalDisplayLines = drawScreen(win, gc, font, T);
+                    T.scrollOffset = max(0, totalDisplayLines - visibleRows);
+                    T.userScrolled = false;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
 
-                // --- inputs navigation (Up/Down) ---
+                // History up/down
                 if (keysym == XK_Up)
                 {
-                    if (isSearching == 1 || inRec == 1)
+                    if (T.isSearching || T.inRec) { /* ignore */ }
+                    else if (!inputs.empty())
                     {
-                        continue;
-                    }
-                    isMultLine = false;
-                    if (!inputs.empty())
-                    {
-                        if (inpIdx > 0)
-                            inpIdx--;
-                        else
-                            inpIdx = 0;
-                        for (size_t i = 0; i < input.size(); i++)
-                        {
-                            if (input[i] == '"')
-                            {
-                                isMultLine = !(isMultLine);
-                            }
-                        }
-                        input = inputs[inpIdx];
-                        currCursorPos = input.size();
+                        T.isMultLine = false;
+                        if (T.inpIdx > 0) T.inpIdx--;
+                        else T.inpIdx = 0;
+
+                        T.input = inputs[T.inpIdx];
+                        for (char c : T.input) if (c=='"') T.isMultLine = !T.isMultLine;
+                        T.currCursorPos = (int)T.input.size();
                         rebuildScreenBuffer();
-                        totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                        drawScreen(win, gc, font, T);
                     }
-                    break;
+                    continue;
                 }
                 if (keysym == XK_Down)
                 {
-                    if (isSearching == 1 || inRec == 1)
+                    if (T.isSearching || T.inRec) { /* ignore */ }
+                    else if (!inputs.empty())
                     {
-                        continue;
-                    }
-
-                    if (!inputs.empty())
-                    {
-                        isMultLine = false;
-                        if (inpIdx < (int)inputs.size() - 1)
-                        {
-                            inpIdx++;
-                            input = inputs[inpIdx];
-                        }
-                        else
-                        {
-                            inpIdx = inputs.size();
-                            input.clear();
-                        }
-                        for (size_t i = 0; i < input.size(); i++)
-                        {
-                            if (input[i] == '"')
-                            {
-                                isMultLine = !(isMultLine);
-                            }
-                        }
-                        currCursorPos = input.size();
+                        T.isMultLine = false;
+                        if (T.inpIdx < (int)inputs.size() - 1) {
+                            T.inpIdx++; T.input = inputs[T.inpIdx];
+                        } else { T.inpIdx = (int)inputs.size(); T.input.clear(); }
+                        for (char c : T.input) if (c=='"') T.isMultLine = !T.isMultLine;
+                        T.currCursorPos = (int)T.input.size();
                         rebuildScreenBuffer();
-                        totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                        drawScreen(win, gc, font, T);
                     }
-                    break;
+                    continue;
                 }
 
-                // --- Left/Right arrows ---
+                // Left/Right
                 if (keysym == XK_Left)
                 {
-                    if (currCursorPos > 0)
-                        currCursorPos--;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    if (T.currCursorPos > 0) T.currCursorPos--;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
                 if (keysym == XK_Right)
                 {
-                    if (currCursorPos < (int)input.size())
-                        currCursorPos++;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    if (T.currCursorPos < (int)T.input.size()) T.currCursorPos++;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
 
-                // --- Ctrl+V (paste via selection) handled earlier via SelectionNotify, keep unchanged ---
+                // Ctrl+V paste request
                 if ((event.xkey.state & ControlMask) && (keysym == XK_v || keysym == XK_V))
                 {
                     XConvertSelection(dpy, XInternAtom(dpy, "CLIPBOARD", False),
                                       XInternAtom(dpy, "UTF8_STRING", False),
                                       XInternAtom(dpy, "PASTE_BUFFER", False),
                                       win, CurrentTime);
-                    break;
+                    continue;
                 }
+
+                // Ctrl+R search
                 if ((event.xkey.state & ControlMask) && (keysym == XK_r))
                 {
-                    screenBuffer.push_back("Enter search term:");
-                    input = "";
-                    // screenBuffer.push_back("");
-                    string cwd = getPWD();
-                    string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
-                    currCursorPos = 0;
-                    isSearching = true;
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    T.screenBuffer.push_back("Enter search term:");
+                    T.input.clear();
+                    string sdisp = formatPWD(T.cwd);
+                    string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+                    T.currCursorPos = 0;
+                    T.isSearching = true;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
 
-                // --- Ctrl+A (start of user input) ---
+                // Ctrl+A start
                 if ((event.xkey.state & ControlMask) && (keysym == XK_a))
                 {
-                    if (isSearching)
-                    {
-                        currCursorPos = 0;
-                    }
-                    // Move to start of the current input (not counting prompt)
-                    else
-                    {
-                        currCursorPos = count;
-                    }
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    if (T.isSearching) T.currCursorPos = 0;
+                    else T.currCursorPos = T.count;
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
-
-                // --- Ctrl+E (end of input) ---
+                // Ctrl+E end
                 if ((event.xkey.state & ControlMask) && (keysym == XK_e))
                 {
-                    currCursorPos = input.size();
-                    totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                    break;
+                    T.currCursorPos = (int)T.input.size();
+                    drawScreen(win, gc, font, T);
+                    continue;
                 }
+
+                // Tab completion (your logic)
                 if (keysym == XK_Tab)
                 {
-                    if (!input.empty())
+                    if (!T.input.empty())
                     {
-                        inRec = true;
-                        query = getQuery(input);
-                        
-                        if (query == input && query.find("./", 0) == 0)
-                        {
-                            query = query.substr(2);
-                        }
-                        forRec = input;
+                        T.inRec = true;
+                        T.query = getQuery(T.input);
+                        if (T.query == T.input && T.query.rfind("./", 0) == 0)
+                            T.query = T.query.substr(2);
+                        T.forRec = T.input;
 
-                        vector<string> candidates = execCommand("ls");
+                        // list directory candidates under tab cwd
+                        auto outputs = execCommandInDir("ls", T.cwd);
+                        vector<string> candidates;
+                        for (auto &l : outputs) if (!l.empty() && l.rfind("ERROR:", 0) != 0) candidates.push_back(l);
 
-                        recs = getRecomm(query, candidates);
-                        if (recs.empty())
+                        T.recs = getRecomm(T.query, candidates);
+                        if (T.recs.empty())
                         {
-                            inRec = false;
+                            T.inRec = false;
                         }
-                        else if (recs.size() == 1)
+                        else if (T.recs.size() == 1)
                         {
-                            input += recs[0].substr(query.size());
-                            screenBuffer.back() += recs[0].substr(query.size());
-                            inRec = false;
-                            currCursorPos = input.size();
+                            T.input += T.recs[0].substr(T.query.size());
+                            // update last prompt line
+                            if (!T.screenBuffer.empty())
+                                T.screenBuffer.back() += T.recs[0].substr(T.query.size());
+                            T.inRec = false;
+                            T.currCursorPos = (int)T.input.size();
                         }
                         else
                         {
-                            // Build and show recommendation list
-                            for (size_t i = 0; i < recs.size(); i++)
-                            {
-                                showRec += to_string(i + 1) + ". " + recs[i] + "  ";
-                            }
-
-                            // Push list of completions
-                            screenBuffer.push_back(showRec);
-
-                            // Now push an empty line for user to type their choice
-                            screenBuffer.push_back("Choose from above options:");
-
-                            // Reset input for this new line
-                            input.clear();
-                            currCursorPos = 0;
-                            showRec.clear();
-
-                            // You're now in "selection" mode (inRec = true)
+                            for (size_t i = 0; i < T.recs.size(); i++)
+                                T.showRec += to_string(i + 1) + ". " + T.recs[i] + "  ";
+                            T.screenBuffer.push_back(T.showRec);
+                            T.screenBuffer.push_back("Choose from above options:");
+                            T.input.clear();
+                            T.currCursorPos = 0;
+                            T.showRec.clear();
                         }
-                        totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                        drawScreen(win, gc, font, T);
                     }
-                    break;
+                    continue;
                 }
-                // --- printable/character handling ---
+
+                // Printable handling via wbuf
                 if ((status == XLookupChars || status == XLookupBoth) && len > 0)
                 {
-                    // ENTER / RETURN
+                    // ENTER
                     if (wbuf[0] == L'\r' || wbuf[0] == L'\n')
                     {
-                        if (inRec)
+                        if (T.inRec)
                         {
-                            // cout << input;
-                            int recIdx = min(getRecIdx(input), int(recs.size())) - 1;
-                            string rec = recs[recIdx];
-                            input = forRec + rec.substr(query.size());
-                            string cwd = getPWD();
-                            string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
-                            screenBuffer.pop_back();
-                            screenBuffer.pop_back();
-                            screenBuffer.pop_back();
-                            screenBuffer.push_back(prompt + input);
-                            currCursorPos = input.size();
+                            int recIdx = min(getRecIdx(T.input), (int)T.recs.size()) - 1;
+                            if (recIdx < 0) recIdx = 0;
+                            string rec = T.recs[recIdx];
+                            T.input = T.forRec + rec.substr(T.query.size());
 
-                            inRec = false;
+                            string sdisp = formatPWD(T.cwd);
+                            string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+
+                            // remove the three pushed lines (list + "Choose..." + current line)
+                            if (!T.screenBuffer.empty()) { T.screenBuffer.pop_back(); }
+                            if (!T.screenBuffer.empty()) { T.screenBuffer.pop_back(); }
+                            if (!T.screenBuffer.empty()) { T.screenBuffer.pop_back(); }
+                            T.screenBuffer.push_back(prompt + T.input);
+                            T.currCursorPos = (int)T.input.size();
+                            T.inRec = false;
                             continue;
                         }
-                        if (isSearching)
+
+                        if (T.isSearching)
                         {
-                            string search_res = searchHistory(input);
-                            input = "";
-                            string cwd = getPWD();
-                            string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
+                            string search_res = searchHistory(T.input);
+                            T.input.clear();
+                            string sdisp = formatPWD(T.cwd);
+                            string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
                             if (search_res != "No match for search term in history")
                             {
-                                input = search_res;
-                                for (size_t i = 0; i < input.size(); i++)
-                                {
-                                    if (input[i] == '"')
-                                    {
-                                        isMultLine = !(isMultLine);
-                                    }
-                                }
-
-                                screenBuffer.push_back(prompt + input);
-                                currCursorPos = input.size();
+                                T.input = search_res;
+                                T.isMultLine = false;
+                                for (char c : T.input) if (c=='"') T.isMultLine = !T.isMultLine;
+                                T.screenBuffer.push_back(prompt + T.input);
+                                T.currCursorPos = (int)T.input.size();
                             }
                             else
                             {
-                                screenBuffer.push_back(search_res);
-                                screenBuffer.push_back(prompt + input);
-                                currCursorPos = 0;
+                                T.screenBuffer.push_back(search_res);
+                                T.screenBuffer.push_back(prompt + T.input);
+                                T.currCursorPos = 0;
                             }
-                            isSearching = false;
-
+                            T.isSearching = false;
                             continue;
                         }
-                        if (isMultLine)
-                        { // multi-line active -> insert newline into input
-                            input.insert(input.begin() + currCursorPos, '\n');
-                            currCursorPos++;
-                            count = input.size();
-                            rebuildScreenBuffer();
-                            totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                            continue; // don't execute command yet
-                        }
 
+                        if (T.isMultLine)
+                        {
+                            T.input.insert(T.input.begin() + T.currCursorPos, '\n');
+                            T.currCursorPos++;
+                            T.count = (int)T.input.size();
+                            rebuildScreenBuffer();
+                            drawScreen(win, gc, font, T);
+                            continue;
+                        }
                         else
                         {
-
-                            // execute command flow
-                            if (!input.empty())
+                            if (!T.input.empty())
                             {
-                                if (inputs.empty() || inputs.back() != input)
+                                if (inputs.empty() || inputs.back() != T.input)
                                 {
-                                    storeInput(input);
-                                    inputs.push_back(input);
+                                    storeInput(T.input);
+                                    inputs.push_back(T.input);
                                 }
                             }
-                            count = 0;
-                            inpIdx = inputs.size();
-                            auto trim = [](const string &s) -> string
+                            T.count = 0;
+                            T.inpIdx = (int)inputs.size();
+
+                            auto trimLocal = [](const string &s) -> string
                             {
                                 size_t a = 0, b = s.size();
-                                while (a < b && isspace((unsigned char)s[a]))
-                                    ++a;
-                                while (b > a && isspace((unsigned char)s[b - 1]))
-                                    --b;
-                                return s.substr(a, b - a);
+                                while (a < b && isspace((unsigned char)s[a])) ++a;
+                                while (b > a && isspace((unsigned char)s[b-1])) --b;
+                                return s.substr(a, b-a);
                             };
-                            string trimmed = trim(input);
+                            string trimmed = trimLocal(T.input);
+
                             if (trimmed == "history")
                             {
-                                ifstream in(FILENAME); // open file
-                                if (!in)
-                                {
-                                    cerr << "Error: cannot open file\n";
-                                    return;
+                                ifstream in(FILENAME);
+                                if (!in) { cerr << "Error: cannot open file\n"; }
+                                else {
+                                    string line;
+                                    while (getline(in, line))
+                                        T.screenBuffer.push_back(line);
+                                    in.close();
                                 }
-
-                                string line;
-                                while (getline(in, line))
-                                {
-                                    screenBuffer.push_back(line); // process each line
-                                }
-
-                                in.close(); // close file
                             }
-                            // --- handle "clear" command ---
                             if (trimmed == "clear")
                             {
-                                // 1) Clear visible buffer (keep inputs)
-                                screenBuffer.clear();
-
-                                // 2) Push fresh prompt line
-                                string cwd = getPWD();
-                                string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
-                                screenBuffer.push_back(prompt);
-
-                                // 3) Reset input & cursor & isMultLines (so editing starts clean)
-                                input.clear();
-                                currCursorPos = 0;
-                                isMultLine = false; // if you use this for quoting/multiline, reset it
-
-                                // 4) Redraw and reposition view to bottom (so prompt is visible)
-                                totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-
-                                {
-                                    XWindowAttributes attrs;
-                                    XGetWindowAttributes(dpy, win, &attrs);
-                                    int lineHeight = font->ascent + font->descent;
-                                    int visibleRows = max(1, (attrs.height - 30) / lineHeight);
-                                    scrollOffset = max(0, totalDisplayLines - visibleRows);
-                                    userScrolled = false;
-                                }
-
-                                drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-
-                                // 5) skip normal execution for this Enter
+                                T.screenBuffer.clear();
+                                string sdisp = formatPWD(T.cwd);
+                                string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+                                T.screenBuffer.push_back(prompt);
+                                T.input.clear();
+                                T.currCursorPos = 0;
+                                T.isMultLine = false;
+                                int totalDisplayLines = drawScreen(win, gc, font, T);
+                                T.scrollOffset = max(0, totalDisplayLines - visibleRows);
+                                T.userScrolled = false;
+                                drawScreen(win, gc, font, T);
                                 continue;
                             }
 
-                            // execute and append outputs
-                            vector<string> outputs = execCommand(input);
-                            input.clear();
-                            currCursorPos = 0;
+                            // execute in tab cwd
+                            vector<string> outputs = execCommandInDir(T.input, T.cwd);
+                            T.input.clear();
+                            T.currCursorPos = 0;
 
                             for (const auto &line : outputs)
-                                screenBuffer.push_back(line);
+                                T.screenBuffer.push_back(line);
 
-                            string cwd = getPWD();
-                            string prompt = (cwd == "/") ? ("shre@Term:" + cwd + "$ ") : ("shre@Term:~" + cwd + "$ ");
-                            screenBuffer.push_back(prompt);
+                            string sdisp = formatPWD(T.cwd);
+                            string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+                            T.screenBuffer.push_back(prompt);
 
-                            totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                            if (!userScrolled)
+                            int totalDisplayLines = drawScreen(win, gc, font, T);
+                            if (!T.userScrolled)
                             {
-                                scrollOffset = max(0, totalDisplayLines - visibleRows);
-                                totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                                T.scrollOffset = max(0, totalDisplayLines - visibleRows);
+                                drawScreen(win, gc, font, T);
                             }
                             continue;
                         }
@@ -567,81 +461,65 @@ static void run(Window win)
                     // BACKSPACE
                     if (wbuf[0] == 8 || wbuf[0] == 127)
                     {
-                        if (isSearching && !input.empty())
+                        if ((T.isSearching || T.inRec) && !T.input.empty())
                         {
-                            string curr = screenBuffer.back();
-                            screenBuffer.pop_back();
-                            input.erase(input.begin() + currCursorPos - 1);
-                            screenBuffer.push_back(curr.substr(0, curr.size() - 1));
-                            currCursorPos--;
-                            continue;
-                        }
-                        if (inRec && !input.empty())
-                        {
-                            string curr = screenBuffer.back();
-                            screenBuffer.pop_back();
-                            input.erase(input.begin() + currCursorPos - 1);
-                            screenBuffer.push_back(curr.substr(0, curr.size() - 1));
-                            currCursorPos--;
+                            string curr = T.screenBuffer.back();
+                            T.screenBuffer.pop_back();
+                            T.input.erase(T.input.begin() + T.currCursorPos - 1);
+                            T.screenBuffer.push_back(curr.substr(0, curr.size() - 1));
+                            T.currCursorPos--;
                             continue;
                         }
 
-                        if (currCursorPos > 0)
+                        if (T.currCursorPos > 0)
                         {
-                            if (input[currCursorPos - 1] == '"')
-                                isMultLine = !isMultLine;
-                            input.erase(input.begin() + currCursorPos - 1);
-                            currCursorPos--;
+                            if (T.input[T.currCursorPos - 1] == '"')
+                                T.isMultLine = !T.isMultLine;
+                            T.input.erase(T.input.begin() + T.currCursorPos - 1);
+                            T.currCursorPos--;
                             rebuildScreenBuffer();
-                            totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
-                        }
-                        else
-                        {
-                            // at start of input: nothing to do (or optionally beep)
+                            drawScreen(win, gc, font, T);
                         }
                         continue;
                     }
 
                     // Regular printable char
                     char ch = (char)wbuf[0];
-                    if (inRec)
+                    if (T.inRec)
                     {
-
-                        input.insert(input.begin() + currCursorPos, ch);
-                        screenBuffer.back() += ch;
-                        currCursorPos++;
-
+                        T.input.insert(T.input.begin() + T.currCursorPos, ch);
+                        T.screenBuffer.back() += ch;
+                        T.currCursorPos++;
                         continue;
                     }
-                    if (isSearching)
+                    if (T.isSearching)
                     {
-                        input.insert(input.begin() + currCursorPos, ch);
-                        screenBuffer.back() += ch;
-                        currCursorPos++;
+                        T.input.insert(T.input.begin() + T.currCursorPos, ch);
+                        T.screenBuffer.back() += ch;
+                        T.currCursorPos++;
                         continue;
                     }
                     if (isprint((unsigned char)ch) || ch == '\t')
                     {
-                        if (ch == '"')
-                            isMultLine = !isMultLine;
-                        input.insert(input.begin() + currCursorPos, ch);
-                        currCursorPos++;
+                        if (ch == '"') T.isMultLine = !T.isMultLine;
+                        T.input.insert(T.input.begin() + T.currCursorPos, ch);
+                        T.currCursorPos++;
                         rebuildScreenBuffer();
-                        totalDisplayLines = drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+                        drawScreen(win, gc, font, T);
                         continue;
                     }
                 }
-                break;
-            } // end KeyPress
+            }
+            else if (event.type == SelectionNotify)
+            {
+                if (!(active_tab >= 0 && active_tab < (int)tabs.size()))
+                    continue;
+                TabState &T = tabs[active_tab];
 
-            // KeyPress
-            case SelectionNotify:
                 if (event.xselection.selection == XInternAtom(dpy, "CLIPBOARD", False))
                 {
-                    Atom type;
-                    int format;
-                    unsigned long nitems, bytes_after;
-                    unsigned char *data = nullptr;
+                    Atom type; int format;
+                    unsigned long nitems, bytes_after; unsigned char *data = nullptr;
 
                     XGetWindowProperty(dpy, win,
                                        XInternAtom(dpy, "PASTE_BUFFER", False),
@@ -653,50 +531,48 @@ static void run(Window win)
                         std::string clipText((char *)data, nitems);
                         XFree(data);
 
-                        // Append to input buffer or insert into screen
                         std::istringstream ss(clipText);
-                        std::string line;
-                        bool first = true;
+                        std::string line; bool first = true;
 
                         while (std::getline(ss, line))
                         {
                             if (first)
                             {
-                                // Continue on current line
-                                screenBuffer.back() += line;
-                                input += line;
+                                if (!T.screenBuffer.empty()) T.screenBuffer.back() += line;
+                                T.input += line;
                                 first = false;
                             }
                             else
                             {
-                                // New line (simulate Enter key)
-                                screenBuffer.push_back(line);
-                                input += '\n';
-                                input += line;
+                                T.screenBuffer.push_back(line);
+                                T.input += '\n';
+                                T.input += line;
                             }
                         }
-
-                        // Optional: redraw
-                        currCursorPos = input.size();
-                        drawScreen(win, gc, font, screenBuffer, true, scrollOffset);
+                        T.currCursorPos = (int)T.input.size();
+                        drawScreen(win, gc, font, T);
                     }
                 }
-                break;
-            } // switch
-        } // XPending
+            }
+        } // while XPending
 
-        // --- Blink cursor ---
-        auto now = chrono::steady_clock::now();
-        if (chrono::duration_cast<std::chrono::milliseconds>(now - lastBlink).count() > 500)
+        // blink active tab cursor only
+        if (active_tab >= 0 && active_tab < (int)tabs.size())
         {
-            showCursor = !showCursor;
-            lastBlink = now;
-            drawScreen(win, gc, font, screenBuffer, showCursor, scrollOffset);
+            TabState &T = tabs[active_tab];
+            auto now = chrono::steady_clock::now();
+            if (chrono::duration_cast<std::chrono::milliseconds>(now - T.lastBlink).count() > 500)
+            {
+                T.showCursor = !T.showCursor;
+                T.lastBlink = now;
+                drawScreen(win, gc, font, T);
+            }
         }
+        // tiny sleep
+        this_thread::sleep_for(chrono::milliseconds(20));
     }
 
-    if (xic)
-        XDestroyIC(xic);
-    if (xim)
-        XCloseIM(xim);
+    if (xic) XDestroyIC(xic);
+    if (xim) XCloseIM(xim);
+
 }

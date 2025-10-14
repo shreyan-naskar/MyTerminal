@@ -1,15 +1,4 @@
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <cstdio>
-#include <err.h>
-#include <string>
-#include <iostream>
-#include <chrono>
-#include <vector>
-#include <bits/stdc++.h>
-#include <unistd.h>
-#include <cctype>
-#include <regex>
+#include "headers.cpp"
 
 // include files for functionality
 #include "run.cpp"
@@ -33,7 +22,7 @@ int main()
     
     win = create_window(POSX, POSY, WIDTH, HEIGHT, BORDER);
     XStoreName(dpy, win, "shreTerm");
-    chdir("/");
+    // chdir("/");
     run(win);
 
     XUnmapWindow(dpy, win);

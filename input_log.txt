@@ -1160,3 +1160,64 @@ bal"
   1145  ./termgui
   1146  cd /
   1147  cd
+  1148  cd Desktop/GITHUB/MyTerminal
+  1149  cat termgui.cpp
+  1150  clear
+  1151  cd Desktop/GITHUB/MyTerminal
+  1152  ./termgui
+  1153  cd
+  1154  cd Desktop/GITHUB/MyTerminal
+  1155  ls
+  1156  ./all
+  1157  ls
+  1158  echo"ghud"
+  1159  echo "ghud"
+  1160  ls
+  1161  echo "ghud"
+  1162  cat termgui.cpp
+  1163  cd
+  1164  cd ..
+  1165  cd
+  1166  cd Desktop/GITHUB/MyTerminal
+  1167  gud bal
+  1168  echo "gud"
+  1169  echo "gud
+bal"
+  1170  echo "guwd"
+  1171  cd
+  1172  echo "guwd"
+  1173  cd Desktop/GITHUB/MyTerminal
+  1174  cd
+  1175  cd Desktop/GITHUB/MyTerminal
+  1176  clear
+  1177  ls
+  1178  g++ a.cpp
+  1179  ./a.out
+  1180  g++ a.cpp
+  1181  ./a.out
+  1182  cd
+  1183  cd Desktop/GITHUB/MyTerminal
+  1184  g++ a.cpp
+  1185  ./a.out
+  1186  cd
+  1187  cd Desktop/GITHUB/MyTerminal
+  1188  g++ a.cpp
+  1189  ./a.out
+  1190  cd
+  1191  cd Desktop/GITHUB/MyTerminal
+  1192  g++ a.cpp
+  1193  ./a.out
+  1194  cd
+  1195  clear
+  1196  g++ a.cpp
+  1197  cd
+  1198  cd Desktop/GITHUB/MyTerminal
+  1199  g++ a.cpp
+  1200  ./a.out
+  1201  cd
+  1202  cd Desktop/GITHUB/MyTerminal
+  1203  g++ a.cpp
+  1204  ./a.out
+  1205  cd
+  1206  cd Desktop/GITHUB/MyTerminal
+  1207  ./termgui

@@ -1,56 +1,66 @@
-#include <X11/Xlib.h>
-#include <X11/keysym.h>
-#include <cstdio>
-#include <err.h>
-#include <string>
-#include <iostream>
-#include <chrono>
-#include <vector>
-#include <bits/stdc++.h>
-#include <unistd.h>
-#include <cctype>
-#include <regex>
-using namespace std;
+#include "headers.cpp"
+#include "helper_funcs.cpp"
 
 static Display *dpy;
 static int scr;
 static Window root;
-static const int ROWS = 24; // visible lines
-string input;
-int currCursorPos = 0;
-bool isSearching = false;
-bool inRec = false;
-string showRec = "";
-#define POSX 500
-#define POSY 500
-#define WIDTH 500
-#define HEIGHT 500
-#define BORDER 15
 
-string getPWD()
-{
-    char cwd[512];
-    string currentDir;
-    if (getcwd(cwd, sizeof(cwd)) != nullptr)
-    {
-        currentDir = string(cwd);
-    }
-    if (currentDir.size() < 15)
-    {
-        return currentDir;
-    }
-    return currentDir.substr(15);
-}
+static const int ROWS = 24; // kept (not directly used, but retained)
+#define POSX 200
+#define POSY 200
+#define WIDTH 900
+#define HEIGHT 600
+#define BORDER 8
+
+// navbar constants
+static const int NAVBAR_H = 30;
+static const int TAB_PADDING = 8;
+static const int TAB_SPACING = 4;
+
+// ------------- Per-tab state ---------------
+
+struct TabState {
+    // UI buffers / state
+    vector<string> screenBuffer;
+    string input;
+    int currCursorPos = 0;
+    bool isSearching = false;
+    bool inRec = false;
+    string showRec = "";
+    vector<string> recs;
+    string query = "";
+    string forRec = "";
+    int inpIdx = 0;
+    int scrollOffset = 0;
+    bool userScrolled = false;
+    bool isMultLine = false;
+    int count = 0;
+    // cursor blink
+    bool showCursor = true;
+    chrono::steady_clock::time_point lastBlink = chrono::steady_clock::now();
+    // per-tab cwd
+    string cwd = "/";
+    // title
+    string title;
+};
+
+// tab chrome
+struct TabChromePos { int x; int w; };
+static int active_tab = -1;
+static vector<TabState> tabs;
+
+static const int SCROLL_STEP = 3; // lines per wheel/page step
+
+// Globals shared across tabs
+vector<string> inputs; // history (shared)
 
 static Window create_window(int x, int y, int h, int w, int b)
 {
     Window win;
     XSetWindowAttributes xwa;
-
     xwa.background_pixel = BlackPixel(dpy, scr);
     xwa.border_pixel = WhitePixel(dpy, scr); // white border
-    xwa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask;
-
+    xwa.event_mask = ExposureMask | KeyPressMask | ButtonPressMask | StructureNotifyMask;
     win = XCreateWindow(
         dpy, root, x, y, w, h, b,
         DefaultDepth(dpy, scr),
@@ -58,22 +68,28 @@ static Window create_window(int x, int y, int h, int w, int b)
         DefaultVisual(dpy, scr),
         CWBackPixel | CWBorderPixel | CWEventMask,
         &xwa);
-
     return win;
 }
-static int drawScreen(Window win, GC gc, XFontStruct *font,
-                      vector<string> &screenBuffer, bool showCursor, int scrollOffset)
-{
-    XClearWindow(dpy, win);
-    int lineHeight = font->ascent + font->descent;
 
-    // window metrics / margins
+
+// draw one tab content (adapted from your drawScreen; clears only content area)
+static int drawScreen(Window win, GC gc, XFontStruct *font,
+                      TabState &T)
+{
+    // window metrics
     XWindowAttributes attrs;
     XGetWindowAttributes(dpy, win, &attrs);
     int winWidth = attrs.width;
     int winHeight = attrs.height;
+
+    // Clear only content area (below navbar)
+    XClearArea(dpy, win, 0, NAVBAR_H, winWidth, winHeight - NAVBAR_H, False);
+
+    int lineHeight = font->ascent + font->descent;
+
+    // margins inside content
     int marginLeft = 10;
-    int marginTop = 30;
+    int marginTop = NAVBAR_H + 30;
 
     // allocate colors once
     static bool colorsInit = false;
@@ -97,17 +113,12 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         colorsInit = true;
     }
 
-    const string promptPrefix = "shre@Term:"; // your prompt prefix
+    const string promptPrefix = "shre@Term:";
 
-    // Build wrapped display lines as before
-    struct DisplayLine
-    {
-        string text;
-        int promptChars;
-    };
+    struct DisplayLine { string text; int promptChars; };
     vector<DisplayLine> displayLines;
 
-    for (const auto &origLine : screenBuffer)
+    for (const auto &origLine : T.screenBuffer)
     {
         if (origLine.empty())
         {
@@ -132,11 +143,7 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
                 ++len;
             }
 
-            if (len == 0)
-            {
-                ++pos;
-                ++len;
-            }
+            if (len == 0) { ++pos; ++len; }
 
             string piece = origLine.substr(start, len);
             int promptCharsInPiece = 0;
@@ -147,19 +154,15 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         }
     }
 
-    // determine how many display lines fit vertically
     int visibleRows = max(1, (winHeight - marginTop) / lineHeight);
 
-    // clamp scrollOffset to valid range
     int totalLines = (int)displayLines.size();
-    if (scrollOffset < 0)
-        scrollOffset = 0;
-    if (scrollOffset > max(0, totalLines - visibleRows))
-        scrollOffset = max(0, totalLines - visibleRows);
+    if (T.scrollOffset < 0) T.scrollOffset = 0;
+    if (T.scrollOffset > max(0, totalLines - visibleRows))
+        T.scrollOffset = max(0, totalLines - visibleRows);
 
-    // draw only visible window: from scrollOffset .. scrollOffset + visibleRows - 1
-    int start = scrollOffset;
-    int end = min(totalLines, scrollOffset + visibleRows);
+    int start = T.scrollOffset;
+    int end = min(totalLines, T.scrollOffset + visibleRows);
 
     for (int row = start; row < end; ++row)
     {
@@ -168,16 +171,13 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         const DisplayLine &dl = displayLines[row];
 
         unsigned long color = whitePixel;
-
-        // If line starts with "ERR:", use red
         string textToDraw = dl.text;
-        if (textToDraw.rfind("ERROR:", 0) == 0) // line starts with ERR:
-        {
+
+        if (textToDraw.rfind("ERROR:", 0) == 0) {
             color = redPixel;
-            textToDraw = textToDraw.substr(7); // remove ERR: prefix
+            textToDraw = textToDraw.substr(7);
         }
 
-        // If there is prompt at the start, keep green for prompt only
         if (dl.promptChars > 0)
         {
             string ppart = textToDraw.substr(0, dl.promptChars);
@@ -188,78 +188,65 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
             string rpart = textToDraw.substr(dl.promptChars);
             if (!rpart.empty())
             {
-                XSetForeground(dpy, gc, color); // white or red
+                XSetForeground(dpy, gc, color);
                 XDrawString(dpy, win, gc, x, y, rpart.c_str(), (int)rpart.length());
             }
         }
         else
         {
-            XSetForeground(dpy, gc, color); // white or red
+            XSetForeground(dpy, gc, color);
             XDrawString(dpy, win, gc, x, y, textToDraw.c_str(), (int)textToDraw.length());
         }
     }
 
-    // Draw cursor — compute its absolute display-line index (last line)
-    // Draw cursor using global cursorPos and global input
-    if (showCursor)
+    // Cursor
+    if (T.showCursor)
     {
-        string s = getPWD();
-        string prompt = (s == "/") ? "shre@Term:" + s + "$ " : "shre@Term:~" + s + "$ ";
+        string sdisp = formatPWD(T.cwd);
+        string prompt = (sdisp == "/") ? "shre@Term:" + sdisp + "$ " : "shre@Term:~" + sdisp + "$ ";
 
-        // Split input into lines
         vector<string> lines;
         size_t pos = 0, last = 0;
-        while ((pos = input.find('\n', last)) != string::npos)
+        while ((pos = T.input.find('\n', last)) != string::npos)
         {
-            lines.push_back(input.substr(last, pos - last));
+            lines.push_back(T.input.substr(last, pos - last));
             last = pos + 1;
         }
-        lines.push_back(input.substr(last));
+        lines.push_back(T.input.substr(last));
 
-        // Figure out which line cursor is on
-        int curLine = 0, curCol = currCursorPos;
+        int curLine = 0, curCol = T.currCursorPos;
         int counted = 0;
         for (size_t i = 0; i < lines.size(); i++)
         {
-            if (currCursorPos <= counted + (int)lines[i].size())
+            if (T.currCursorPos <= counted + (int)lines[i].size())
             {
-                curLine = i;
-                curCol = currCursorPos - counted;
+                curLine = (int)i;
+                curCol = T.currCursorPos - counted;
                 break;
             }
-            counted += lines[i].size() + 1; // +1 for '\n'
+            counted += (int)lines[i].size() + 1;
         }
 
-        // -------------------------------------
-        // FIXED CURSOR POSITIONING CODE
-        // -------------------------------------
         string uptoCursor;
-        int pxWidth = 0; // total pixel width before cursor
+        int pxWidth = 0;
 
         if (curLine == 0)
         {
-            if (isSearching)
+            if (T.isSearching)
             {
-                // Search mode: measure after "Enter search term:"
                 string searchPrompt = "Enter search term:";
                 int promptWidth = XTextWidth(font, searchPrompt.c_str(), searchPrompt.size());
-
                 uptoCursor = lines[curLine].substr(0, curCol);
                 int textWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
-
-                pxWidth = promptWidth + textWidth; // final pixel width
+                pxWidth = promptWidth + textWidth;
             }
-            else if (inRec)
+            else if (T.inRec)
             {
-                // Search mode: measure after "Enter search term:"
-                // string searchPrompt = "Enter search term:";
                 string searchPrompt = "Choose from above options:";
                 int promptWidth = XTextWidth(font, searchPrompt.c_str(), searchPrompt.size());
-
                 uptoCursor = lines[curLine].substr(0, curCol);
                 int textWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
-
-                pxWidth = promptWidth + textWidth; // final pixel width
+                pxWidth = promptWidth + textWidth;
             }
             else
             {
@@ -273,19 +260,110 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
             pxWidth = XTextWidth(font, uptoCursor.c_str(), uptoCursor.size());
         }
 
-        // Draw the cursor
-        int cursorX = marginLeft + pxWidth;
-        int cursorLineIndex = totalLines - (lines.size() - curLine);
+        int contentYOffset = NAVBAR_H + 30;
+        int marginLeftX = 10;
+        int cursorX = marginLeftX + pxWidth;
+        int cursorLineIndex = totalLines - ((int)lines.size() - curLine);
 
         if (cursorLineIndex >= start && cursorLineIndex < end)
         {
             int row = cursorLineIndex - start;
-            int yTop = marginTop + row * lineHeight - font->ascent;
-            int yBottom = marginTop + row * lineHeight + font->descent;
+            int baselineY = contentYOffset + row * lineHeight;
+            int yTop = baselineY - font->ascent;
+            int yBottom = baselineY + font->descent;
 
-            XSetForeground(dpy, gc, whitePixel);
+            XSetForeground(dpy, gc, WhitePixel(dpy, scr));
             XDrawLine(dpy, win, gc, cursorX, yTop, cursorX, yBottom);
         }
     }
-    return totalLines;
+
+    return (int)displayLines.size();
+}
+
+// navbar drawing
+static void draw_navbar(Window win, GC gc, int win_w)
+{
+    XSetForeground(dpy, gc, BlackPixel(dpy, scr));
+    XFillRectangle(dpy, win, gc, 0, 0, win_w, NAVBAR_H);
+
+    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
+    XDrawLine(dpy, win, gc, 0, NAVBAR_H-1, win_w, NAVBAR_H-1);
+}
+
+static vector<TabChromePos> draw_tabs(Window win, GC gc, XFontStruct* font)
+{
+    XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
+    int win_w = wa.width;
+
+    vector<TabChromePos> pos;
+    int x = 6;
+    int y = 6;
+    int tab_h = NAVBAR_H - 12;
+
+    for (size_t i = 0; i < tabs.size(); ++i)
+    {
+        string label = tabs[i].title.empty() ? ("Tab " + to_string((int)i+1)) : tabs[i].title;
+        int w = XTextWidth(font, label.c_str(), (int)label.size()) + TAB_PADDING*2;
+        unsigned long fill = ((int)i == active_tab) ? WhitePixel(dpy, scr) : BlackPixel(dpy, scr);
+        unsigned long textc = ((int)i == active_tab) ? BlackPixel(dpy, scr) : WhitePixel(dpy, scr);
+
+        // fill
+        XSetForeground(dpy, gc, fill);
+        XFillRectangle(dpy, win, gc, x, y, w, tab_h);
+        // border
+        XSetForeground(dpy, gc, WhitePixel(dpy, scr));
+        XDrawRectangle(dpy, win, gc, x, y, w, tab_h);
+        // text
+        XSetForeground(dpy, gc, textc);
+        XDrawString(dpy, win, gc, x + TAB_PADDING, y + tab_h - 4, label.c_str(), (int)label.size());
+
+        pos.push_back({x, w});
+        x += w + TAB_SPACING;
+    }
+
+    // plus button
+    string plus = "+";
+    int plus_w = XTextWidth(font, plus.c_str(), (int)plus.size()) + TAB_PADDING*2;
+    int plus_x = win_w - plus_w - 6;
+
+    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
+    XFillRectangle(dpy, win, gc, plus_x, y, plus_w, tab_h);
+    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
+    XDrawRectangle(dpy, win, gc, plus_x, y, plus_w, tab_h);
+    XSetForeground(dpy, gc, BlackPixel(dpy, scr));
+    XDrawString(dpy, win, gc, plus_x + TAB_PADDING, y + tab_h - 4, plus.c_str(), (int)plus.size());
+
+    return pos;
+}
+
+static int navbar_hit_test(Window win, int mx, int my, const vector<TabChromePos>& pos, XFontStruct* font)
+{
+    if (my < 6 || my > NAVBAR_H-6) return -2;
+    for (size_t i = 0; i < pos.size(); ++i)
+    {
+        if (mx >= pos[i].x && mx <= pos[i].x + pos[i].w) return (int)i;
+    }
+    // plus
+    XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
+    string plus = "+";
+    int plus_w = XTextWidth(font, plus.c_str(), (int)plus.size()) + TAB_PADDING*2;
+    int plus_x = wa.width - plus_w - 6;
+    int y = 6;
+    int tab_h = NAVBAR_H - 12;
+    if (mx >= plus_x && mx <= plus_x + plus_w && my >= y && my <= y + tab_h) return -1;
+    return -2;
+}
+
+// add new tab
+static void add_tab(const string& initial_cwd = "/")
+{
+    TabState t;
+    t.cwd = initial_cwd;
+    string sdisp = formatPWD(t.cwd);
+    string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+    t.screenBuffer.push_back(prompt);
+    t.inpIdx = (int)inputs.size() - 1;
+    t.title = "Tab " + to_string((int)tabs.size() + 1);
+    tabs.push_back(std::move(t));
+    active_tab = (int)tabs.size() - 1;
 }
