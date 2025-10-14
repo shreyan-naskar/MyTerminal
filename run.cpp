@@ -317,8 +317,8 @@ int run(Window win)
                         {
                             for (size_t i = 0; i < T.recs.size(); i++)
                                 T.showRec += to_string(i + 1) + ". " + T.recs[i] + "  ";
-                            T.screenBuffer.push_back(T.showRec);
-                            T.screenBuffer.push_back("Choose from above options:");
+                            T.screenBuffer.push_back("REC:"+T.showRec);
+                            T.screenBuffer.push_back("REC:Choose from above options:");
                             T.input.clear();
                             T.currCursorPos = 0;
                             T.showRec.clear();

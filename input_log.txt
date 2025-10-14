@@ -1221,3 +1221,6 @@ bal"
   1205  cd
   1206  cd Desktop/GITHUB/MyTerminal
   1207  ./termgui
+  1208  cd
+  1209  cd Desktop/GITHUB/MyTerminal
+  1210  ./termgui

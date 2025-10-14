@@ -96,10 +96,11 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     static unsigned long greenPixel = WhitePixel(dpy, scr);
     static unsigned long whitePixel = WhitePixel(dpy, scr);
     static unsigned long redPixel = WhitePixel(dpy, scr);
+    static unsigned long yellowPixel = WhitePixel(dpy, scr);
     if (!colorsInit)
     {
         Colormap colormap = DefaultColormap(dpy, scr);
-        XColor green, white, red, exact;
+        XColor green, white, red, yellow, exact;
 
         if (XAllocNamedColor(dpy, colormap, "green", &green, &exact))
             greenPixel = green.pixel;
@@ -109,6 +110,9 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
 
         if (XAllocNamedColor(dpy, colormap, "red", &red, &exact))
             redPixel = red.pixel;
+
+        if (XAllocNamedColor(dpy, colormap, "yellow", &yellow, &exact))
+            yellowPixel = yellow.pixel;
 
         colorsInit = true;
     }
@@ -176,6 +180,10 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         if (textToDraw.rfind("ERROR:", 0) == 0) {
             color = redPixel;
             textToDraw = textToDraw.substr(7);
+        }
+        if (textToDraw.rfind("REC:", 0) == 0) {
+            color = yellowPixel;
+            textToDraw = textToDraw.substr(4);
         }
 
         if (dl.promptChars > 0)
