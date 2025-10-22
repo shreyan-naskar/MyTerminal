@@ -5,8 +5,21 @@
 
 using namespace std;
 
-int main()
+int main(int argc, char** argv)
 {
+    fstream file(argv[1]);
+    if (!file.is_open()) {
+        cerr << "Error opening the file!";
+        return 1;
+    }
+    string dir;
+
+    getline(file, dir);
+    getline(file, FILENAME);
+    len = int(dir.size());
+
+    file.close();
+
     Window win;
 
     dpy = XOpenDisplay(NULL);

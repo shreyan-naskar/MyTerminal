@@ -1,23 +1,23 @@
 #include "headers.cpp"
 
-const string FILENAME = "/home/shreyan10/Desktop/GITHUB/MyTerminal/input_log.txt";
-
+string FILENAME;
+int len = 0;
 string getPWD()
 {
     char cwd[512];
     string currentDir;
     if (getcwd(cwd, sizeof(cwd)) != nullptr)
         currentDir = string(cwd);
-    if (currentDir.size() < 15)
+    if (currentDir.size() < len)
         return currentDir;
-    return currentDir.substr(15);
+    return currentDir.substr(len);
 }
 
 // format per-tab CWD the same way
 static string formatPWD(const string &cwd)
 {
-    if (cwd.size() < 15) return cwd;
-    return cwd.substr(15);
+    if (cwd.size() < len) return cwd;
+    return cwd.substr(len);
 }
 
 // --------- history helpers (unchanged) ----------

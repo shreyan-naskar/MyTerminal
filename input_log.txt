@@ -1231,3 +1231,23 @@ bal"
   1215  cd
   1216  cd Desktop/GITHUB/MyTerminal
   1217  ls
+  1218  cd
+  1219  cd Desktop/GITHUB/MyTerminal
+  1220  g++ a.cpp
+  1221  ./a.out
+  1222  cd
+  1223  cd Desktop/GITHUB/MyTerminal
+  1224  g++ a.cpp
+  1225  ./a.out
+  1226  g++ a.cpp
+  1227  ./a.out
+  1228  cd
+  1229  cd Desktop/GITHUB/MyTerminal
+  1230  g++ a.cpp
+  1231  ./a.out
+  1232  cd
+  1233  cd Desktop/GITHUB/MyTerminal
+  1234  cd
+  1235  cd Desktop/GITHUB/MyTerminal
+  1236  clear
+  1237  Desktop/GITHUB/MyTerminal
