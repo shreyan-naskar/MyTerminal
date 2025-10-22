@@ -45,9 +45,17 @@ struct TabState {
 };
 
 // tab chrome
-struct TabChromePos { int x; int w; };
+
 static int active_tab = -1;
 static vector<TabState> tabs;
+
+struct TabChromePos {
+    int x;
+    int w;
+    int close_x;
+    int close_w;
+    bool is_plus;
+};
 
 static const int SCROLL_STEP = 3; // lines per wheel/page step
 
@@ -298,68 +306,166 @@ static void draw_navbar(Window win, GC gc, int win_w)
     XDrawLine(dpy, win, gc, 0, NAVBAR_H-1, win_w, NAVBAR_H-1);
 }
 
-static vector<TabChromePos> draw_tabs(Window win, GC gc, XFontStruct* font)
+
+// Globals to track hover state (set these from MotionNotify handler)
+int hovered_close_tab = -1;
+bool hovered_plus = false;
+
+static vector<TabChromePos> draw_tabs(Window win, GC gc, XFontStruct *font)
 {
-    XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
+    XWindowAttributes wa;
+    XGetWindowAttributes(dpy, win, &wa);
     int win_w = wa.width;
 
     vector<TabChromePos> pos;
-    int x = 6;
+
+    // Close window if no tabs
+    if (tabs.empty()) {
+        XDestroyWindow(dpy, win);
+        XCloseDisplay(dpy);
+        exit(0);
+    }
+
     int y = 6;
-    int tab_h = NAVBAR_H - 12;
+    int tab_h = NAVBAR_H - 10;
+    int radius = 10;
+    int gap = 6;
+
+    // --- Reserve space for "+" button ---
+    int plus_w = 50;
+    int available_w = win_w - plus_w - (gap * (int)tabs.size()) - 20;
+    int total_tabs = max(1, (int)tabs.size());
+    int tab_w = available_w / total_tabs;
 
     for (size_t i = 0; i < tabs.size(); ++i)
     {
-        string label = tabs[i].title.empty() ? ("Tab " + to_string((int)i+1)) : tabs[i].title;
-        int w = XTextWidth(font, label.c_str(), (int)label.size()) + TAB_PADDING*2;
-        unsigned long fill = ((int)i == active_tab) ? WhitePixel(dpy, scr) : BlackPixel(dpy, scr);
-        unsigned long textc = ((int)i == active_tab) ? BlackPixel(dpy, scr) : WhitePixel(dpy, scr);
+        string label = "TAB " + to_string((int)i + 1);
+        int x = 10 + i * (tab_w + gap);
+        bool active = ((int)i == active_tab);
 
-        // fill
-        XSetForeground(dpy, gc, fill);
-        XFillRectangle(dpy, win, gc, x, y, w, tab_h);
-        // border
-        XSetForeground(dpy, gc, WhitePixel(dpy, scr));
-        XDrawRectangle(dpy, win, gc, x, y, w, tab_h);
-        // text
+        unsigned long active_bg   = 0xF7F9FF;
+        unsigned long inactive_bg = 0x2C2F36;
+        unsigned long active_text = 0x202020;
+        unsigned long inactive_text = 0xEAEAEA;
+        unsigned long border_color = 0x808899;
+
+        unsigned long bg    = active ? active_bg   : inactive_bg;
+        unsigned long textc = active ? active_text : inactive_text;
+
+        // --- Tab background ---
+        XSetForeground(dpy, gc, bg);
+        XFillArc(dpy, win, gc, x, y, radius * 2, radius * 2, 90 * 64, 90 * 64);
+        XFillArc(dpy, win, gc, x + tab_w - radius * 2, y, radius * 2, radius * 2, 0, 90 * 64);
+        XFillRectangle(dpy, win, gc, x + radius, y, tab_w - 2 * radius, tab_h);
+        XFillRectangle(dpy, win, gc, x, y + radius, tab_w, tab_h - radius);
+
+        // --- Active tab indicator ---
+        if (active) {
+            XSetForeground(dpy, gc, 0xFF0000);
+            XFillRectangle(dpy, win, gc, x, y + tab_h - 3, tab_w, 3);
+        }
+
+        // --- Border ---
+        XSetForeground(dpy, gc, border_color);
+        XDrawRectangle(dpy, win, gc, x, y, tab_w - 1, tab_h);
+
+        // --- Label text ---
+        XCharStruct overall;
+        int dir, ascent, descent;
+        XTextExtents(font, label.c_str(), (int)label.size(), &dir, &ascent, &descent, &overall);
+
+        int text_x = x + (tab_w - overall.width) / 2;
+        int text_y = y + (tab_h + ascent - descent) / 2 + 2;
+
         XSetForeground(dpy, gc, textc);
-        XDrawString(dpy, win, gc, x + TAB_PADDING, y + tab_h - 4, label.c_str(), (int)label.size());
+        XDrawString(dpy, win, gc, text_x, text_y, label.c_str(), (int)label.size());
 
-        pos.push_back({x, w});
-        x += w + TAB_SPACING;
+        // --- Close button ---
+        int close_size = 18;
+        int close_x = x + tab_w - close_size - 8;
+        int close_y = y + (tab_h - close_size) / 2;
+
+        unsigned long close_bg = (hovered_close_tab == (int)i) ? 0xC0392B : (active ? 0xE74C3C : 0x555555);
+        unsigned long close_fg = 0xFFFFFF;
+
+        XSetForeground(dpy, gc, close_bg);
+        XFillArc(dpy, win, gc, close_x, close_y, close_size, close_size, 0, 360 * 64);
+
+        // --- Centered "X" ---
+        string cross = "X";
+        XCharStruct cross_overall;
+        int dir2, ascent2, descent2;
+        XTextExtents(font, cross.c_str(), cross.size(), &dir2, &ascent2, &descent2, &cross_overall);
+
+        int cx = close_x + (close_size - cross_overall.width) / 2;
+        int cy = close_y + (close_size + ascent2 - descent2) / 2;
+        XSetForeground(dpy, gc, close_fg);
+        XDrawString(dpy, win, gc, cx, cy, cross.c_str(), (int)cross.size());
+
+        pos.push_back({x, tab_w, close_x, close_size, false});
     }
 
-    // plus button
-    string plus = "+";
-    int plus_w = XTextWidth(font, plus.c_str(), (int)plus.size()) + TAB_PADDING*2;
-    int plus_x = win_w - plus_w - 6;
+    // --- "+" button ---
+    int plus_x = win_w - plus_w - 10;
+    int plus_y = y;
+    unsigned long plus_bg = hovered_plus ? 0x1E8449 : 0x27AE60; // darker on hover
 
-    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
-    XFillRectangle(dpy, win, gc, plus_x, y, plus_w, tab_h);
-    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
-    XDrawRectangle(dpy, win, gc, plus_x, y, plus_w, tab_h);
-    XSetForeground(dpy, gc, BlackPixel(dpy, scr));
-    XDrawString(dpy, win, gc, plus_x + TAB_PADDING, y + tab_h - 4, plus.c_str(), (int)plus.size());
+    XSetForeground(dpy, gc, plus_bg);
+    XFillArc(dpy, win, gc, plus_x, plus_y, radius * 2, radius * 2, 90 * 64, 90 * 64);
+    XFillArc(dpy, win, gc, plus_x + plus_w - radius * 2, plus_y, radius * 2, radius * 2, 0, 90 * 64);
+    XFillRectangle(dpy, win, gc, plus_x + radius, plus_y, plus_w - 2 * radius, tab_h);
+    XFillRectangle(dpy, win, gc, plus_x, plus_y + radius, plus_w, tab_h - radius);
+
+    XSetForeground(dpy, gc, 0xFFFFFF);
+    XDrawRectangle(dpy, win, gc, plus_x, plus_y, plus_w - 1, tab_h);
+
+    // --- Centered "+" ---
+    string plus = "+";
+    XCharStruct p_overall;
+    int dir_p, ascent_p, descent_p;
+    XTextExtents(font, plus.c_str(), (int)plus.size(), &dir_p, &ascent_p, &descent_p, &p_overall);
+
+    int px = plus_x + (plus_w - p_overall.width) / 2;
+    int py = plus_y + (tab_h + ascent_p - descent_p) / 2 + 2;
+    XDrawString(dpy, win, gc, px, py, plus.c_str(), (int)plus.size());
+
+    pos.push_back({plus_x, plus_w, plus_x, plus_w, true});
 
     return pos;
 }
-
-static int navbar_hit_test(Window win, int mx, int my, const vector<TabChromePos>& pos, XFontStruct* font)
+int navbar_hit_test(int mx, int my, const vector<TabChromePos> &pos,  int *out_index = nullptr)
 {
-    if (my < 6 || my > NAVBAR_H-6) return -2;
+    
     for (size_t i = 0; i < pos.size(); ++i)
     {
-        if (mx >= pos[i].x && mx <= pos[i].x + pos[i].w) return (int)i;
+        const auto &tp = pos[i];
+
+        // "+" button
+        if (tp.is_plus)
+        {
+            if (mx >= tp.x && mx <= tp.x + tp.w && my >= 6 && my <= NAVBAR_H - 6)
+                return -2;
+            continue;
+        }
+
+        // Close (×) button
+        if (mx >= tp.close_x && mx <= tp.close_x + tp.close_w && my >= 6 && my <= NAVBAR_H - 6)
+        {
+            if (out_index)
+                *out_index = (int)i;
+            return -3;
+        }
+
+        // Tab body
+        if (mx >= tp.x && mx <= tp.x + tp.w && my >= 6 && my <= NAVBAR_H - 6)
+        {
+            if (out_index)
+                *out_index = (int)i;
+            return (int)i;
+        }
     }
-    // plus
-    XWindowAttributes wa; XGetWindowAttributes(dpy, win, &wa);
-    string plus = "+";
-    int plus_w = XTextWidth(font, plus.c_str(), (int)plus.size()) + TAB_PADDING*2;
-    int plus_x = wa.width - plus_w - 6;
-    int y = 6;
-    int tab_h = NAVBAR_H - 12;
-    if (mx >= plus_x && mx <= plus_x + plus_w && my >= y && my <= y + tab_h) return -1;
-    return -2;
+
+    return -1; // nothing
 }
 
 // add new tab

@@ -1224,3 +1224,10 @@ bal"
   1208  cd
   1209  cd Desktop/GITHUB/MyTerminal
   1210  ./termgui
+  1211  cd
+  1212  cd Desktop/GITHUB/MyTerminal
+  1213  ls
+  1214  echo hello
+  1215  cd
+  1216  cd Desktop/GITHUB/MyTerminal
+  1217  ls
