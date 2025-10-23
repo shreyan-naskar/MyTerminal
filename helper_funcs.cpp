@@ -1,7 +1,8 @@
 #include "headers.cpp"
 
-string FILENAME = "./input_log.txt";
+string historyPath = "./input_log.txt";
 int len = 0;
+
 string getPWD()
 {
     char cwd[512];
@@ -14,21 +15,23 @@ string getPWD()
 }
 
 // format per-tab CWD the same way
-static string formatPWD(const string &cwd)
+static string editPWD(const string &cwd)
 {
     if (int(cwd.size()) < len) return cwd;
     return cwd.substr(len);
 }
 
-// --------- history helpers (unchanged) ----------
-string stripQuotes(const string &s)
+static string getTimeNow()
 {
-    if (s.size() >= 2 && s.front() == '"' && s.back() == '"')
-        return s.substr(1, s.size() - 2);
-    return s;
+    time_t now = time(nullptr);
+    struct tm tmbuf;
+    localtime_r(&now, &tmbuf);
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tmbuf);
+    return string(buf);
 }
 
-int commonPrefixLength(const string &a, const string &b)
+int getMatchingPrefixLength(const string &a, const string &b)
 {
     int len = min(a.size(), b.size());
     for (int i = 0; i < len; ++i)
@@ -37,9 +40,9 @@ int commonPrefixLength(const string &a, const string &b)
     return len;
 }
 
-string searchHistory(const string &input, const string &filename = FILENAME)
+string searchFromHistory(const string &input, const string &historyPath = historyPath)
 {
-    ifstream in(filename);
+    ifstream in(historyPath);
     if (!in)
         return "No match for search term in history";
 
@@ -54,9 +57,9 @@ string searchHistory(const string &input, const string &filename = FILENAME)
     }
     in.close();
 
-    string exactMatch = "";
-    vector<string> candidates;
-    int maxPrefixLen = 0;
+    string fullMatch = "";
+    vector<string> allCandidates;
+    int maxLenPrefix = 0;
 
     for (auto it = history.rbegin(); it != history.rend(); ++it)
     {
@@ -64,52 +67,52 @@ string searchHistory(const string &input, const string &filename = FILENAME)
 
         if (cmd == input)
         {
-            exactMatch = cmd;
+            fullMatch = cmd;
             break;
         }
-        int prefixLen = commonPrefixLength(cmd, input);
-        if (prefixLen > maxPrefixLen)
+        int prefixLen = getMatchingPrefixLength(cmd, input);
+        if (prefixLen > maxLenPrefix)
         {
-            maxPrefixLen = prefixLen;
-            candidates.clear();
-            candidates.push_back(cmd);
+            maxLenPrefix = prefixLen;
+            allCandidates.clear();
+            allCandidates.push_back(cmd);
         }
-        else if (prefixLen == maxPrefixLen)
+        else if (prefixLen == maxLenPrefix)
         {
-            candidates.push_back(cmd);
+            allCandidates.push_back(cmd);
         }
     }
 
-    if (!exactMatch.empty())
-        return exactMatch;
+    if (!fullMatch.empty())
+        return fullMatch;
 
-    if (maxPrefixLen >= 2)
-        return candidates[0];
+    if (maxLenPrefix >= 2)
+        return allCandidates[0];
 
     return "No match for search term in history";
 }
 
-int getLastHistoryNumber()
+int getLatestHistoryIdx()
 {
-    ifstream in(FILENAME);
+    ifstream in(historyPath);
     if (!in)
         return 0;
 
-    string line; int lastNum = 0;
+    string line; int lastIdx = 0;
     while (getline(in, line))
     {
         istringstream iss(line);
         int num;
-        if (iss >> num) lastNum = max(lastNum, num);
+        if (iss >> num) lastIdx = max(lastIdx, num);
     }
     in.close();
-    return lastNum;
+    return lastIdx;
 }
 
-void storeInput(const string &input)
+void storeHistory(const string &input)
 {
-    int histNum = getLastHistoryNumber() + 1;
-    ofstream out(FILENAME, ios::app);
+    int histNum = getLatestHistoryIdx() + 1;
+    ofstream out(historyPath, ios::app);
     if (!out)
     {
         cerr << "Error opening file for writing.\n";
@@ -119,9 +122,9 @@ void storeInput(const string &input)
     out.close();
 }
 
-vector<string> loadInputs()
+vector<string> getHistory()
 {
-    ifstream in(FILENAME);
+    ifstream in(historyPath);
     vector<string> inputs;
     if (!in) return inputs;
 
@@ -139,7 +142,7 @@ vector<string> loadInputs()
     return inputs;
 }
 
-string getQuery(string input)
+string extractQuery(string input)
 {
     string query = "";
     for (auto c : input)
@@ -157,7 +160,7 @@ int getRecIdx(string inp)
     return !recIdx.empty() ? stoi(recIdx) : 1;
 }
 
-vector<string> getRecomm(string query, vector<string> list)
+vector<string> getRecommendations(string query, vector<string> list)
 {
     vector<string> recs;
     for (auto &ele : list)

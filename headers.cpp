@@ -16,24 +16,6 @@
 #include <vector>
 #include <bits/stdc++.h>
 #include <unistd.h>
-#include <cctype>
-#include <regex>
-#include <sys/stat.h>
-#include <limits.h>
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <fcntl.h>
-#include <cctype>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <sys/poll.h>
-#include <cstdio>
-#include <err.h>
-#include <string>
-#include <chrono>
-#include <vector>
-#include <unistd.h>
 #include <regex>
 #include <sys/stat.h>
 #include <limits.h>
@@ -44,7 +26,7 @@
 #include <mutex>
 #include <queue>
 #include <iomanip>
-#include <sstream>
 #include <atomic>
+
 
 using namespace std;

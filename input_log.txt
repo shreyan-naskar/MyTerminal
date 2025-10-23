@@ -1289,3 +1289,64 @@ bal"
   1273  cd Desktop/GITHUB/MyTerminal
   1274  multiWatch [ "echo bara", "echo gud", "echo bal" ]
   1275  ls
+  1276  cd
+  1277  cd Desktop/GITHUB/MyTerminal
+  1278  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1279  clear
+  1280  cd
+  1281  cd Desktop/GITHUB/MyTerminal
+  1282  ls
+  1283  cat designDoc.txt
+  1284  cat draw.cpp
+  1285  clear
+  1286  echo hello
+  1287  cd
+  1288  cd Desktop/GITHUB/MyTerminal
+  1289  clear
+  1290  echo hello
+  1291  clear
+  1292  cd
+  1293  cd Desktop/GITHUB/MyTerminal
+  1294  cd
+  1295  cd Desktop/GITHUB/MyTerminal
+  1296  cd
+  1297  cd Desktop/GITHUB/MyTerminal
+  1298  cd
+  1299  cd Desktop/GITHUB/MyTerminal
+  1300  cd
+  1301  cd Desktop/GITHUB/MyTerminal
+  1302  designDoc.txt
+  1303  cd
+  1304  cd Desktop/GITHUB/MyTerminal
+  1305  ./termgui /home/shreyan10
+  1306  cd
+  1307  cd Desktop/GITHUB/MyTerminal
+  1308  designDoc.txt
+  1309  echo hello
+  1310  cd
+  1311  designDoc.txt
+  1312  cd Desktop/GITHUB/MyTerminal
+  1313  designDoc.txt
+  1314  cat termgui.cpp
+  1315  clear
+  1316  cd
+  1317  cd Desktop/GITHUB/MyTerminal
+  1318  cd
+  1319  cd Desktop/GITHUB/MyTerminal
+  1320  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1321  clear
+  1322  cd
+  1323  cd Desktop/GITHUB/MyTerminal
+  1324  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1325  clear
+  1326  cd
+  1327  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1328  cd
+  1329  cd Desktop/GITHUB/MyTerminal
+  1330  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1331  cd Desktop/GITHUB/MyTerminal
+  1332  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1333  clear
+  1334  cd
+  1335  cd Desktop/GITHUB/MyTerminal
+  1336  multiWatch [ "echo bara", "echo gud", "echo bal" ]

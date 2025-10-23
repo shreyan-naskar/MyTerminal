@@ -12,23 +12,22 @@ int main(int argc, char** argv)
 
     Window win;
 
-    dpy = XOpenDisplay(NULL);
-    if (dpy == NULL)
+    disp = XOpenDisplay(NULL);
+    if (disp == NULL)
     {
         errx(1, "Cant open display");
     }
-    inputs = loadInputs();
-    // reverse(inputs.begin(), inputs.begin());
+    inputs = getHistory();
 
-    scr = DefaultScreen(dpy);
-    root = RootWindow(dpy, scr);
+    scr = DefaultScreen(disp);
+    root = RootWindow(disp, scr);
     
-    win = create_window(POSX, POSY, WIDTH, HEIGHT, BORDER);
-    XStoreName(dpy, win, "shreTerm");
+    win = makeWindow(POSX, POSY, WIDTH, HEIGHT, BORDER);
+    XStoreName(disp, win, "shreTerm");
     // chdir("/");
     run(win);
 
-    XUnmapWindow(dpy, win);
-    XDestroyWindow(dpy, win);
+    XUnmapWindow(disp, win);
+    XDestroyWindow(disp, win);
     return argc;
 }

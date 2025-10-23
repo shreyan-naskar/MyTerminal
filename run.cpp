@@ -5,16 +5,16 @@
 void run(Window win)
 {
     // font + gc
-    XFontStruct *font = XLoadQueryFont(dpy, "8x16");
+    XFontStruct *font = XLoadQueryFont(disp, "8x16");
 
     if (!font)
-        font = XLoadQueryFont(dpy, "fixed");
-    GC gc = XCreateGC(dpy, win, 0, nullptr);
-    XSetFont(dpy, gc, font->fid);
-    XSetForeground(dpy, gc, WhitePixel(dpy, scr));
+        font = XLoadQueryFont(disp, "fixed");
+    GC gc = XCreateGC(disp, win, 0, nullptr);
+    XSetFont(disp, gc, font->fid);
+    XSetForeground(disp, gc, WhitePixel(disp, scr));
 
     // XIM/XIC
-    XIM xim = XOpenIM(dpy, nullptr, nullptr, nullptr);
+    XIM xim = XOpenIM(disp, nullptr, nullptr, nullptr);
     if (!xim)
         std::cerr << "XOpenIM failed — continuing without input method\n";
     XIC xic = nullptr;
@@ -26,140 +26,140 @@ void run(Window win)
             std::cerr << "XCreateIC failed — continuing without input context\n";
     }
 
-    XMapWindow(dpy, win);
+    XMapWindow(disp, win);
 
     // initial tab
-    add_tab("/");
+    addTab("/");
 
     // event loop
     while (true)
     {
-        while (XPending(dpy) > 0)
+        while (XPending(disp) > 0)
         {
             XEvent event;
-            XNextEvent(dpy, &event);
+            XNextEvent(disp, &event);
 
             if (event.type == Expose)
             {
                 XWindowAttributes wa;
-                XGetWindowAttributes(dpy, win, &wa);
+                XGetWindowAttributes(disp, win, &wa);
                 // draw navbar and tabs
-                draw_navbar(win, gc, wa.width);
-                auto tpos = draw_tabs(win, gc, font);
+                makeNavBar(win, gc, wa.width);
+                auto tpos = makeTabs(win, gc, font);
                 // draw active tab content
-                if (active_tab >= 0 && active_tab < (int)tabs.size())
-                    drawScreen(win, gc, font, tabs[active_tab]);
+                if (tabActive >= 0 && tabActive < (int)tabs.size())
+                    makeScreen(win, gc, font, tabs[tabActive]);
             }
             else if (event.type == ConfigureNotify)
             {
                 // window resized: redraw all
                 XWindowAttributes wa;
-                XGetWindowAttributes(dpy, win, &wa);
-                draw_navbar(win, gc, wa.width);
-                auto tpos = draw_tabs(win, gc, font);
-                if (active_tab >= 0 && active_tab < (int)tabs.size())
-                    drawScreen(win, gc, font, tabs[active_tab]);
+                XGetWindowAttributes(disp, win, &wa);
+                makeNavBar(win, gc, wa.width);
+                auto tpos = makeTabs(win, gc, font);
+                if (tabActive >= 0 && tabActive < (int)tabs.size())
+                    makeScreen(win, gc, font, tabs[tabActive]);
             }
             else if (event.type == ButtonPress)
             {
                 // navbar test first
                 XWindowAttributes wa;
-                XGetWindowAttributes(dpy, win, &wa);
-                auto tpos = draw_tabs(win, gc, font);
+                XGetWindowAttributes(disp, win, &wa);
+                auto tpos = makeTabs(win, gc, font);
 
-                int tab_index = -1;
-                int hit = navbar_hit_test(event.xbutton.x, event.xbutton.y, tpos, &tab_index);
+                int tabIdx = -1;
+                int hit = navbarHit(event.xbutton.x, event.xbutton.y, tpos, &tabIdx);
 
                 if (hit == -2) // "+" clicked
                 {
-                    add_tab("/");
-                    draw_navbar(win, gc, wa.width);
-                    tpos = draw_tabs(win, gc, font);
-                    drawScreen(win, gc, font, tabs[active_tab]);
+                    addTab("/");
+                    makeNavBar(win, gc, wa.width);
+                    tpos = makeTabs(win, gc, font);
+                    makeScreen(win, gc, font, tabs[tabActive]);
                     continue;
                 }
-                else if (hit == -3 && tab_index >= 0) // "×" close clicked
+                else if (hit == -3 && tabIdx >= 0) // "×" close clicked
                 {
-                    if (tab_index < (int)tabs.size())
+                    if (tabIdx < (int)tabs.size())
                     {
-                        tabs.erase(tabs.begin() + tab_index);
-                        if (active_tab >= (int)tabs.size())
-                            active_tab = (int)tabs.size() - 1;
-                        draw_navbar(win, gc, wa.width);
-                        tpos = draw_tabs(win, gc, font);
+                        tabs.erase(tabs.begin() + tabIdx);
+                        if (tabActive >= (int)tabs.size())
+                            tabActive = (int)tabs.size() - 1;
+                        makeNavBar(win, gc, wa.width);
+                        tpos = makeTabs(win, gc, font);
                         if (!tabs.empty())
-                            drawScreen(win, gc, font, tabs[active_tab]);
+                            makeScreen(win, gc, font, tabs[tabActive]);
                     }
                     continue;
                 }
                 else if (hit >= 0) // clicked on tab
                 {
                     if (hit < (int)tabs.size())
-                        active_tab = hit;
-                    draw_navbar(win, gc, wa.width);
-                    tpos = draw_tabs(win, gc, font);
-                    drawScreen(win, gc, font, tabs[active_tab]);
+                        tabActive = hit;
+                    makeNavBar(win, gc, wa.width);
+                    tpos = makeTabs(win, gc, font);
+                    makeScreen(win, gc, font, tabs[tabActive]);
                     continue;
                 }
 
                 // content area events (scroll)
-                if (active_tab >= 0 && active_tab < (int)tabs.size())
+                if (tabActive >= 0 && tabActive < (int)tabs.size())
                 {
-                    TabState &T = tabs[active_tab];
+                    tabState &T = tabs[tabActive];
 
                     int lineHeight = font->ascent + font->descent;
-                    int visibleRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
+                    int seeRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
 
                     if (event.xbutton.button == Button4)
                     { // wheel up
-                        T.scrollOffset = max(0, T.scrollOffset - SCROLL_STEP);
+                        T.scrlOffset = max(0, T.scrlOffset - SCROLL_STEP);
                         T.userScrolled = true;
-                        drawScreen(win, gc, font, T);
+                        makeScreen(win, gc, font, T);
                     }
                     else if (event.xbutton.button == Button5)
                     { // wheel down
-                        int totalDisplayLines = drawScreen(win, gc, font, T);
-                        T.scrollOffset = min(max(0, totalDisplayLines - visibleRows),
-                                             T.scrollOffset + SCROLL_STEP);
-                        if (T.scrollOffset >= max(0, totalDisplayLines - visibleRows))
+                        int totalDisplayLines = makeScreen(win, gc, font, T);
+                        T.scrlOffset = min(max(0, totalDisplayLines - seeRows),
+                                             T.scrlOffset + SCROLL_STEP);
+                        if (T.scrlOffset >= max(0, totalDisplayLines - seeRows))
                             T.userScrolled = false;
-                        drawScreen(win, gc, font, T);
+                        makeScreen(win, gc, font, T);
                     }
                 }
             }
             else if (event.type == MotionNotify)
             {
-                hovered_close_tab = -1;
-                hovered_plus = false;
+                howerXClose = -1;
+                howerPlusTab = false;
 
                 int mx = event.xmotion.x;
                 // int my = event.xmotion.y;
 
-                auto tpos = draw_tabs(win, gc, font); // or cache it globally
+                auto tpos = makeTabs(win, gc, font); // or cache it globally
 
                 for (size_t i = 0; i < tpos.size(); ++i)
                 {
-                    if (tpos[i].is_plus)
+                    if (tpos[i].isPlus)
                     {
                         if (mx >= tpos[i].x && mx <= tpos[i].x + tpos[i].w)
-                            hovered_plus = true;
+                            howerPlusTab = true;
                     }
                     else
                     {
-                        if (mx >= tpos[i].close_x && mx <= tpos[i].close_x + tpos[i].close_w)
-                            hovered_close_tab = i;
+                        if (mx >= tpos[i].xClose && mx <= tpos[i].xClose + tpos[i].wClose)
+                            howerXClose = i;
                     }
                 }
 
-                draw_tabs(win, gc, font); // redraw with hover state
+                makeTabs(win, gc, font); // redraw with hover state
             }
 
             else if (event.type == KeyPress)
             {
-                if (!(active_tab >= 0 && active_tab < (int)tabs.size()))
+                if (!(tabActive >= 0 && tabActive < (int)tabs.size()))
                     continue;
 
-                TabState &T = tabs[active_tab];
+                tabState &T = tabs[tabActive];
 
                 // input lookup (wide)
                 wchar_t wbuf[32];
@@ -176,18 +176,18 @@ void run(Window win)
 
                 // metrics
                 XWindowAttributes wa;
-                XGetWindowAttributes(dpy, win, &wa);
+                XGetWindowAttributes(disp, win, &wa);
                 int lineHeight = font->ascent + font->descent;
-                int visibleRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
+                int seeRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
 
-                auto rebuildScreenBuffer = [&]()
+                auto remakeScreenBuf = [&]()
                 {
-                    while (!T.screenBuffer.empty() && T.screenBuffer.back().rfind("shre@Term:", 0) != 0)
-                        T.screenBuffer.pop_back();
-                    if (!T.screenBuffer.empty())
-                        T.screenBuffer.pop_back();
+                    while (!T.displayBuffer.empty() && T.displayBuffer.back().rfind("shre@Term:", 0) != 0)
+                        T.displayBuffer.pop_back();
+                    if (!T.displayBuffer.empty())
+                        T.displayBuffer.pop_back();
 
-                    string sdisp = formatPWD(T.cwd);
+                    string sdisp = editPWD(T.cwd);
                     string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
 
                     vector<string> parts;
@@ -201,16 +201,16 @@ void run(Window win)
 
                     if (parts.empty())
                     {
-                        T.screenBuffer.push_back(prompt);
+                        T.displayBuffer.push_back(prompt);
                         return;
                     }
 
                     for (size_t i = 0; i < parts.size(); ++i)
                     {
                         if (i == 0)
-                            T.screenBuffer.push_back(prompt + parts[i]);
+                            T.displayBuffer.push_back(prompt + parts[i]);
                         else
-                            T.screenBuffer.push_back(parts[i]);
+                            T.displayBuffer.push_back(parts[i]);
                     }
                 };
 
@@ -220,13 +220,13 @@ void run(Window win)
                     // soft-exit: close current tab if >1, else exit
                     if (tabs.size() > 1)
                     {
-                        tabs.erase(tabs.begin() + active_tab);
-                        if (active_tab >= (int)tabs.size())
-                            active_tab = (int)tabs.size() - 1;
-                        draw_navbar(win, gc, wa.width);
-                        auto tpos = draw_tabs(win, gc, font);
+                        tabs.erase(tabs.begin() + tabActive);
+                        if (tabActive >= (int)tabs.size())
+                            tabActive = (int)tabs.size() - 1;
+                        makeNavBar(win, gc, wa.width);
+                        auto tpos = makeTabs(win, gc, font);
                         if (!tabs.empty())
-                            drawScreen(win, gc, font, tabs[active_tab]);
+                            makeScreen(win, gc, font, tabs[tabActive]);
                         continue;
                     }
                     else
@@ -238,45 +238,45 @@ void run(Window win)
                 // PageUp/Down, Home/End
                 if (keysym == XK_Page_Up)
                 {
-                    T.scrollOffset = max(0, T.scrollOffset - SCROLL_STEP * 5);
+                    T.scrlOffset = max(0, T.scrlOffset - SCROLL_STEP * 5);
                     T.userScrolled = true;
-                    drawScreen(win, gc, font, T);
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
                 else if (keysym == XK_Page_Down)
                 {
-                    int totalDisplayLines = drawScreen(win, gc, font, T);
-                    T.scrollOffset = min(max(0, totalDisplayLines - visibleRows), T.scrollOffset + SCROLL_STEP * 5);
-                    if (T.scrollOffset >= max(0, totalDisplayLines - visibleRows))
+                    int totalDisplayLines = makeScreen(win, gc, font, T);
+                    T.scrlOffset = min(max(0, totalDisplayLines - seeRows), T.scrlOffset + SCROLL_STEP * 5);
+                    if (T.scrlOffset >= max(0, totalDisplayLines - seeRows))
                         T.userScrolled = false;
-                    drawScreen(win, gc, font, T);
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
                 else if (keysym == XK_Home && (event.xkey.state & ControlMask))
                 {
-                    T.scrollOffset = 0;
+                    T.scrlOffset = 0;
                     T.userScrolled = true;
-                    drawScreen(win, gc, font, T);
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
                 else if (keysym == XK_End && (event.xkey.state & ControlMask))
                 {
-                    int totalDisplayLines = drawScreen(win, gc, font, T);
-                    T.scrollOffset = max(0, totalDisplayLines - visibleRows);
+                    int totalDisplayLines = makeScreen(win, gc, font, T);
+                    T.scrlOffset = max(0, totalDisplayLines - seeRows);
                     T.userScrolled = false;
-                    drawScreen(win, gc, font, T);
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
 
                 // History up/down
                 if (keysym == XK_Up)
                 {
-                    if (T.isSearching || T.inRec)
+                    if (T.searchFlag || T.recommFlag)
                     { /* ignore */
                     }
                     else if (!inputs.empty())
                     {
-                        T.isMultLine = false;
+                        T.multLineFlag = false;
                         if (T.inpIdx > 0)
                             T.inpIdx--;
                         else
@@ -285,21 +285,21 @@ void run(Window win)
                         T.input = inputs[T.inpIdx];
                         for (char c : T.input)
                             if (c == '"')
-                                T.isMultLine = !T.isMultLine;
-                        T.currCursorPos = (int)T.input.size();
-                        rebuildScreenBuffer();
-                        drawScreen(win, gc, font, T);
+                                T.multLineFlag = !T.multLineFlag;
+                        T.currentCursorPosition = (int)T.input.size();
+                        remakeScreenBuf();
+                        makeScreen(win, gc, font, T);
                     }
                     continue;
                 }
                 if (keysym == XK_Down)
                 {
-                    if (T.isSearching || T.inRec)
+                    if (T.searchFlag || T.recommFlag)
                     { /* ignore */
                     }
                     else if (!inputs.empty())
                     {
-                        T.isMultLine = false;
+                        T.multLineFlag = false;
                         if (T.inpIdx < (int)inputs.size() - 1)
                         {
                             T.inpIdx++;
@@ -312,10 +312,10 @@ void run(Window win)
                         }
                         for (char c : T.input)
                             if (c == '"')
-                                T.isMultLine = !T.isMultLine;
-                        T.currCursorPos = (int)T.input.size();
-                        rebuildScreenBuffer();
-                        drawScreen(win, gc, font, T);
+                                T.multLineFlag = !T.multLineFlag;
+                        T.currentCursorPosition = (int)T.input.size();
+                        remakeScreenBuf();
+                        makeScreen(win, gc, font, T);
                     }
                     continue;
                 }
@@ -323,67 +323,67 @@ void run(Window win)
                 // Left/Right
                 if (keysym == XK_Left)
                 {
-                    if (T.currCursorPos > 0)
-                        T.currCursorPos--;
-                    drawScreen(win, gc, font, T);
+                    if (T.currentCursorPosition > 0)
+                        T.currentCursorPosition--;
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
                 if (keysym == XK_Right)
                 {
-                    if (T.currCursorPos < (int)T.input.size())
-                        T.currCursorPos++;
-                    drawScreen(win, gc, font, T);
+                    if (T.currentCursorPosition < (int)T.input.size())
+                        T.currentCursorPosition++;
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
 
                 // Ctrl+V paste request
                 if ((event.xkey.state & ControlMask) && (keysym == XK_v || keysym == XK_V))
                 {
-                    XConvertSelection(dpy, XInternAtom(dpy, "CLIPBOARD", False),
-                                      XInternAtom(dpy, "UTF8_STRING", False),
-                                      XInternAtom(dpy, "PASTE_BUFFER", False),
+                    XConvertSelection(disp, XInternAtom(disp, "CLIPBOARD", False),
+                                      XInternAtom(disp, "UTF8_STRING", False),
+                                      XInternAtom(disp, "PASTE_BUFFER", False),
                                       win, CurrentTime);
                     continue;
                 }
 
                 // Ctrl+R search
-                if ((event.xkey.state & ControlMask) && (keysym == XK_r))
+                if ((event.xkey.state & ControlMask) && (keysym == XK_r || keysym == XK_R))
                 {
-                    T.screenBuffer.push_back("Enter search term:");
+                    T.displayBuffer.push_back("REC:Enter search term:");
                     T.input.clear();
-                    string sdisp = formatPWD(T.cwd);
+                    string sdisp = editPWD(T.cwd);
                     string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
-                    T.currCursorPos = 0;
-                    T.isSearching = true;
-                    drawScreen(win, gc, font, T);
+                    T.currentCursorPosition = 0;
+                    T.searchFlag = true;
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
 
                 // Ctrl+A start
-                if ((event.xkey.state & ControlMask) && (keysym == XK_a))
+                if ((event.xkey.state & ControlMask) && (keysym == XK_a || keysym == XK_A))
                 {
-                    if (T.isSearching)
-                        T.currCursorPos = 0;
+                    if (T.searchFlag)
+                        T.currentCursorPosition = 0;
                     else
-                        T.currCursorPos = T.count;
-                    drawScreen(win, gc, font, T);
+                        T.currentCursorPosition = T.count;
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
                 // Ctrl+E end
-                if ((event.xkey.state & ControlMask) && (keysym == XK_e))
+                if ((event.xkey.state & ControlMask) && (keysym == XK_e|| keysym == XK_E))
                 {
-                    T.currCursorPos = (int)T.input.size();
-                    drawScreen(win, gc, font, T);
+                    T.currentCursorPosition = (int)T.input.size();
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
                 if ((event.xkey.state & ControlMask) && keysym == XK_Tab)
                 {
                     if (!tabs.empty())
                     {
-                        active_tab = (active_tab + 1) % tabs.size();
-                        draw_navbar(win, gc, wa.width);
-                        draw_tabs(win, gc, font);
-                        drawScreen(win, gc, font, tabs[active_tab]);
+                        tabActive = (tabActive + 1) % tabs.size();
+                        makeNavBar(win, gc, wa.width);
+                        makeTabs(win, gc, font);
+                        makeScreen(win, gc, font, tabs[tabActive]);
                     }
                     continue;
                 }
@@ -393,10 +393,10 @@ void run(Window win)
                 {
                     if (!tabs.empty())
                     {
-                        active_tab = (active_tab - 1 + tabs.size()) % tabs.size();
-                        draw_navbar(win, gc, wa.width);
-                        draw_tabs(win, gc, font);
-                        drawScreen(win, gc, font, tabs[active_tab]);
+                        tabActive = (tabActive - 1 + tabs.size()) % tabs.size();
+                        makeNavBar(win, gc, wa.width);
+                        makeTabs(win, gc, font);
+                        makeScreen(win, gc, font, tabs[tabActive]);
                     }
                     continue;
                 }
@@ -405,44 +405,44 @@ void run(Window win)
                 {
                     if (!T.input.empty())
                     {
-                        T.inRec = true;
-                        T.query = getQuery(T.input);
+                        T.recommFlag = true;
+                        T.query = extractQuery(T.input);
                         if (T.query == T.input && T.query.rfind("./", 0) == 0)
                             T.query = T.query.substr(2);
                         T.forRec = T.input;
 
-                        // list directory candidates under tab cwd
-                        auto outputs = execCommandInDir("ls", T.cwd);
-                        vector<string> candidates;
+                        // list directory allCandidates under tab cwd
+                        auto outputs = execInDir("ls", T.cwd);
+                        vector<string> allCandidates;
                         for (auto &l : outputs)
                             if (!l.empty() && l.rfind("ERROR:", 0) != 0)
-                                candidates.push_back(l);
+                                allCandidates.push_back(l);
 
-                        T.recs = getRecomm(T.query, candidates);
+                        T.recs = getRecommendations(T.query, allCandidates);
                         if (T.recs.empty())
                         {
-                            T.inRec = false;
+                            T.recommFlag = false;
                         }
                         else if (T.recs.size() == 1)
                         {
                             T.input += T.recs[0].substr(T.query.size());
                             // update last prompt line
-                            if (!T.screenBuffer.empty())
-                                T.screenBuffer.back() += T.recs[0].substr(T.query.size());
-                            T.inRec = false;
-                            T.currCursorPos = (int)T.input.size();
+                            if (!T.displayBuffer.empty())
+                                T.displayBuffer.back() += T.recs[0].substr(T.query.size());
+                            T.recommFlag = false;
+                            T.currentCursorPosition = (int)T.input.size();
                         }
                         else
                         {
                             for (size_t i = 0; i < T.recs.size(); i++)
                                 T.showRec += to_string(i + 1) + ". " + T.recs[i] + "  ";
-                            T.screenBuffer.push_back(T.showRec);
-                            T.screenBuffer.push_back("Choose from above options:");
+                            T.displayBuffer.push_back("REC:" + T.showRec);
+                            T.displayBuffer.push_back("REC:Choose from above options:");
                             T.input.clear();
-                            T.currCursorPos = 0;
+                            T.currentCursorPosition = 0;
                             T.showRec.clear();
                         }
-                        drawScreen(win, gc, font, T);
+                        makeScreen(win, gc, font, T);
                     }
                     continue;
                 }
@@ -450,19 +450,19 @@ void run(Window win)
                 // Unified Ctrl + C handling for normal commands and multiWatch
                 if ((event.xkey.state & ControlMask) && (keysym == XK_c || keysym == XK_C))
                 {
-                    notify_sigint_from_ui(); // tell execute.cpp to stop running process
+                    getSigint(); // tell execute.cpp to stop running process
 
-                    TabState &T = tabs[active_tab];
-                    T.screenBuffer.push_back("^C");
+                    tabState &T = tabs[tabActive];
+                    T.displayBuffer.push_back("^C");
 
-                    string sdisp = formatPWD(T.cwd);
+                    string sdisp = editPWD(T.cwd);
                     string prompt = (sdisp == "/")
                                         ? ("shre@Term:" + sdisp + "$ ")
                                         : ("shre@Term:~" + sdisp + "$ ");
-                    T.screenBuffer.push_back(prompt);
+                    T.displayBuffer.push_back(prompt);
                     T.input.clear();
-                    T.currCursorPos = 0;
-                    drawScreen(win, gc, font, T);
+                    T.currentCursorPosition = 0;
+                    makeScreen(win, gc, font, T);
                     continue;
                 }
 
@@ -472,7 +472,7 @@ void run(Window win)
                     // ENTER
                     if (wbuf[0] == L'\r' || wbuf[0] == L'\n')
                     {
-                        if (T.inRec)
+                        if (T.recommFlag)
                         {
                             int recIdx = min(getRecIdx(T.input), (int)T.recs.size()) - 1;
                             if (recIdx < 0)
@@ -480,61 +480,61 @@ void run(Window win)
                             string rec = T.recs[recIdx];
                             T.input = T.forRec + rec.substr(T.query.size());
 
-                            string sdisp = formatPWD(T.cwd);
+                            string sdisp = editPWD(T.cwd);
                             string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
 
                             // remove the three pushed lines (list + "Choose..." + current line)
-                            if (!T.screenBuffer.empty())
+                            if (!T.displayBuffer.empty())
                             {
-                                T.screenBuffer.pop_back();
+                                T.displayBuffer.pop_back();
                             }
-                            if (!T.screenBuffer.empty())
+                            if (!T.displayBuffer.empty())
                             {
-                                T.screenBuffer.pop_back();
+                                T.displayBuffer.pop_back();
                             }
-                            if (!T.screenBuffer.empty())
+                            if (!T.displayBuffer.empty())
                             {
-                                T.screenBuffer.pop_back();
+                                T.displayBuffer.pop_back();
                             }
-                            T.screenBuffer.push_back(prompt + T.input);
-                            T.currCursorPos = (int)T.input.size();
-                            T.inRec = false;
+                            T.displayBuffer.push_back(prompt + T.input);
+                            T.currentCursorPosition = (int)T.input.size();
+                            T.recommFlag = false;
                             continue;
                         }
 
-                        if (T.isSearching)
+                        if (T.searchFlag)
                         {
-                            string search_res = searchHistory(T.input);
+                            string search_res = searchFromHistory(T.input);
                             T.input.clear();
-                            string sdisp = formatPWD(T.cwd);
+                            string sdisp = editPWD(T.cwd);
                             string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
                             if (search_res != "No match for search term in history")
                             {
                                 T.input = search_res;
-                                T.isMultLine = false;
+                                T.multLineFlag = false;
                                 for (char c : T.input)
                                     if (c == '"')
-                                        T.isMultLine = !T.isMultLine;
-                                T.screenBuffer.push_back(prompt + T.input);
-                                T.currCursorPos = (int)T.input.size();
+                                        T.multLineFlag = !T.multLineFlag;
+                                T.displayBuffer.push_back(prompt + T.input);
+                                T.currentCursorPosition = (int)T.input.size();
                             }
                             else
                             {
-                                T.screenBuffer.push_back(search_res);
-                                T.screenBuffer.push_back(prompt + T.input);
-                                T.currCursorPos = 0;
+                                T.displayBuffer.push_back(search_res);
+                                T.displayBuffer.push_back(prompt + T.input);
+                                T.currentCursorPosition = 0;
                             }
-                            T.isSearching = false;
+                            T.searchFlag = false;
                             continue;
                         }
 
-                        if (T.isMultLine)
+                        if (T.multLineFlag)
                         {
-                            T.input.insert(T.input.begin() + T.currCursorPos, '\n');
-                            T.currCursorPos++;
+                            T.input.insert(T.input.begin() + T.currentCursorPosition, '\n');
+                            T.currentCursorPosition++;
                             T.count = (int)T.input.size();
-                            rebuildScreenBuffer();
-                            drawScreen(win, gc, font, T);
+                            remakeScreenBuf();
+                            makeScreen(win, gc, font, T);
                             continue;
                         }
                         else
@@ -543,7 +543,7 @@ void run(Window win)
                             {
                                 if (inputs.empty() || inputs.back() != T.input)
                                 {
-                                    storeInput(T.input);
+                                    storeHistory(T.input);
                                     inputs.push_back(T.input);
                                 }
                             }
@@ -559,11 +559,11 @@ void run(Window win)
                                     --b;
                                 return s.substr(a, b - a);
                             };
-                            string trimmed = trimLocal(T.input);
+                            string stripped = trimLocal(T.input);
 
-                            if (trimmed == "history")
+                            if (stripped == "history")
                             {
-                                ifstream in(FILENAME);
+                                ifstream in(historyPath);
                                 if (!in)
                                 {
                                     cerr << "Error: cannot open file\n";
@@ -572,26 +572,26 @@ void run(Window win)
                                 {
                                     string line;
                                     while (getline(in, line))
-                                        T.screenBuffer.push_back(line);
+                                        T.displayBuffer.push_back(line);
                                     in.close();
                                 }
                             }
-                            if (trimmed == "clear")
+                            if (stripped == "clear")
                             {
-                                T.screenBuffer.clear();
-                                string sdisp = formatPWD(T.cwd);
+                                T.displayBuffer.clear();
+                                string sdisp = editPWD(T.cwd);
                                 string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
-                                T.screenBuffer.push_back(prompt);
+                                T.displayBuffer.push_back(prompt);
                                 T.input.clear();
-                                T.currCursorPos = 0;
-                                T.isMultLine = false;
-                                int totalDisplayLines = drawScreen(win, gc, font, T);
-                                T.scrollOffset = max(0, totalDisplayLines - visibleRows);
+                                T.currentCursorPosition = 0;
+                                T.multLineFlag = false;
+                                int totalDisplayLines = makeScreen(win, gc, font, T);
+                                T.scrlOffset = max(0, totalDisplayLines - seeRows);
                                 T.userScrolled = false;
-                                drawScreen(win, gc, font, T);
+                                makeScreen(win, gc, font, T);
                                 continue;
                             }
-                            if (trimmed.rfind("multiWatch", 0) == 0)
+                            if (stripped.rfind("multiWatch", 0) == 0)
                             {
                                 size_t start = T.input.find('[');
                                 size_t end = T.input.find(']');
@@ -610,60 +610,60 @@ void run(Window win)
 
                                     if (cmds.empty())
                                     {
-                                        T.screenBuffer.push_back("multiWatch: No valid commands found.");
+                                        T.displayBuffer.push_back("multiWatch: No valid commands found.");
                                     }
                                     else
                                     {
-                                        T.screenBuffer.push_back("Started multiWatch thread...");
-                                        drawScreen(win, gc, font, T); // immediate feedback
+                                        T.displayBuffer.push_back("Started multiWatch thread...");
+                                        makeScreen(win, gc, font, T); // immediate feedback
 
                                         // ✅ Correct thread launch
-                                        thread([cmds, tab_index = active_tab]()
-                                               { multiWatchThreaded_using_pipes(cmds, tab_index); })
+                                        thread([cmds, tabIdx = tabActive]()
+                                               { multiWatchThreaded_using_pipes(cmds, tabIdx); })
                                             .detach();
                                     }
                                 }
                                 else
                                 {
-                                    T.screenBuffer.push_back("Usage: multiWatch [\"cmd1\", \"cmd2\", ...]");
+                                    T.displayBuffer.push_back("Usage: multiWatch [\"cmd1\", \"cmd2\", ...]");
                                 }
 
                                 // prepare next prompt
                                 T.input.clear();
-                                T.currCursorPos = 0;
-                                string sdisp = formatPWD(T.cwd);
+                                T.currentCursorPosition = 0;
+                                string sdisp = editPWD(T.cwd);
                                 string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ")
                                                                : ("shre@Term:~" + sdisp + "$ ");
-                                T.screenBuffer.push_back(prompt);
-                                drawScreen(win, gc, font, T);
+                                T.displayBuffer.push_back(prompt);
+                                makeScreen(win, gc, font, T);
                                 continue;
                             }
 
                             // execute in tab cwd
-                            vector<string> outputs = execCommandInDir(T.input, T.cwd);
+                            vector<string> outputs = execInDir(T.input, T.cwd);
                             T.input.clear();
-                            T.currCursorPos = 0;
+                            T.currentCursorPosition = 0;
 
                             // Check if this command is multiWatch
                             bool isMultiWatch = (T.input.find("multiWatch") != string::npos);
 
                             // Push command output lines
                             for (const auto &line : outputs)
-                                T.screenBuffer.push_back(line);
+                                T.displayBuffer.push_back(line);
 
                             // Only show prompt if NOT multiWatch
                             if (!isMultiWatch)
                             {
-                                string sdisp = formatPWD(T.cwd);
+                                string sdisp = editPWD(T.cwd);
                                 string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
-                                T.screenBuffer.push_back(prompt);
+                                T.displayBuffer.push_back(prompt);
                             }
 
-                            int totalDisplayLines = drawScreen(win, gc, font, T);
+                            int totalDisplayLines = makeScreen(win, gc, font, T);
                             if (!T.userScrolled)
                             {
-                                T.scrollOffset = max(0, totalDisplayLines - visibleRows);
-                                drawScreen(win, gc, font, T);
+                                T.scrlOffset = max(0, totalDisplayLines - seeRows);
+                                makeScreen(win, gc, font, T);
                             }
                             continue;
                         }
@@ -672,71 +672,71 @@ void run(Window win)
                     // BACKSPACE
                     if (wbuf[0] == 8 || wbuf[0] == 127)
                     {
-                        if ((T.isSearching || T.inRec) && !T.input.empty())
+                        if ((T.searchFlag || T.recommFlag) && !T.input.empty())
                         {
-                            string curr = T.screenBuffer.back();
-                            T.screenBuffer.pop_back();
-                            T.input.erase(T.input.begin() + T.currCursorPos - 1);
-                            T.screenBuffer.push_back(curr.substr(0, curr.size() - 1));
-                            T.currCursorPos--;
+                            string curr = T.displayBuffer.back();
+                            T.displayBuffer.pop_back();
+                            T.input.erase(T.input.begin() + T.currentCursorPosition - 1);
+                            T.displayBuffer.push_back(curr.substr(0, curr.size() - 1));
+                            T.currentCursorPosition--;
                             continue;
                         }
 
-                        if (T.currCursorPos > 0)
+                        if (T.currentCursorPosition > 0)
                         {
-                            if (T.input[T.currCursorPos - 1] == '"')
-                                T.isMultLine = !T.isMultLine;
-                            T.input.erase(T.input.begin() + T.currCursorPos - 1);
-                            T.currCursorPos--;
-                            rebuildScreenBuffer();
-                            drawScreen(win, gc, font, T);
+                            if (T.input[T.currentCursorPosition - 1] == '"')
+                                T.multLineFlag = !T.multLineFlag;
+                            T.input.erase(T.input.begin() + T.currentCursorPosition - 1);
+                            T.currentCursorPosition--;
+                            remakeScreenBuf();
+                            makeScreen(win, gc, font, T);
                         }
                         continue;
                     }
 
                     // Regular printable char
                     char ch = (char)wbuf[0];
-                    if (T.inRec)
+                    if (T.recommFlag)
                     {
-                        T.input.insert(T.input.begin() + T.currCursorPos, ch);
-                        T.screenBuffer.back() += ch;
-                        T.currCursorPos++;
+                        T.input.insert(T.input.begin() + T.currentCursorPosition, ch);
+                        T.displayBuffer.back() += ch;
+                        T.currentCursorPosition++;
                         continue;
                     }
-                    if (T.isSearching)
+                    if (T.searchFlag)
                     {
-                        T.input.insert(T.input.begin() + T.currCursorPos, ch);
-                        T.screenBuffer.back() += ch;
-                        T.currCursorPos++;
+                        T.input.insert(T.input.begin() + T.currentCursorPosition, ch);
+                        T.displayBuffer.back() += ch;
+                        T.currentCursorPosition++;
                         continue;
                     }
                     if (isprint((unsigned char)ch) || ch == '\t')
                     {
                         if (ch == '"')
-                            T.isMultLine = !T.isMultLine;
-                        T.input.insert(T.input.begin() + T.currCursorPos, ch);
-                        T.currCursorPos++;
-                        rebuildScreenBuffer();
-                        drawScreen(win, gc, font, T);
+                            T.multLineFlag = !T.multLineFlag;
+                        T.input.insert(T.input.begin() + T.currentCursorPosition, ch);
+                        T.currentCursorPosition++;
+                        remakeScreenBuf();
+                        makeScreen(win, gc, font, T);
                         continue;
                     }
                 }
             }
             else if (event.type == SelectionNotify)
             {
-                if (!(active_tab >= 0 && active_tab < (int)tabs.size()))
+                if (!(tabActive >= 0 && tabActive < (int)tabs.size()))
                     continue;
-                TabState &T = tabs[active_tab];
+                tabState &T = tabs[tabActive];
 
-                if (event.xselection.selection == XInternAtom(dpy, "CLIPBOARD", False))
+                if (event.xselection.selection == XInternAtom(disp, "CLIPBOARD", False))
                 {
                     Atom type;
                     int format;
                     unsigned long nitems, bytes_after;
                     unsigned char *data = nullptr;
 
-                    XGetWindowProperty(dpy, win,
-                                       XInternAtom(dpy, "PASTE_BUFFER", False),
+                    XGetWindowProperty(disp, win,
+                                       XInternAtom(disp, "PASTE_BUFFER", False),
                                        0, (~0L), True, AnyPropertyType,
                                        &type, &format, &nitems, &bytes_after, &data);
 
@@ -753,65 +753,65 @@ void run(Window win)
                         {
                             if (first)
                             {
-                                if (!T.screenBuffer.empty())
-                                    T.screenBuffer.back() += line;
+                                if (!T.displayBuffer.empty())
+                                    T.displayBuffer.back() += line;
                                 T.input += line;
                                 first = false;
                             }
                             else
                             {
-                                T.screenBuffer.push_back(line);
+                                T.displayBuffer.push_back(line);
                                 T.input += '\n';
                                 T.input += line;
                             }
                         }
-                        T.currCursorPos = (int)T.input.size();
-                        drawScreen(win, gc, font, T);
+                        T.currentCursorPosition = (int)T.input.size();
+                        makeScreen(win, gc, font, T);
                     }
                 }
             }
         } // while XPending
         // ===== drain multiWatch queue (main GUI thread MUST do this) =====
         {
-            std::lock_guard<std::mutex> lk(mw_queue_mutex);
-            while (!mw_queue.empty())
+            std::lock_guard<std::mutex> lk(mwQueueMutex);
+            while (!mwQueue.empty())
             {
-                auto msg = mw_queue.front();
-                mw_queue.pop();
+                auto msg = mwQueue.front();
+                mwQueue.pop();
 
                 if (msg.text == "__MULTIWATCH_DONE__")
                 {
                     // MultiWatch finished → show prompt
-                    if (msg.tab_index >= 0 && msg.tab_index < (int)tabs.size())
+                    if (msg.tabIdx >= 0 && msg.tabIdx < (int)tabs.size())
                     {
-                        TabState &T = tabs[msg.tab_index];
-                        string sdisp = formatPWD(T.cwd);
+                        tabState &T = tabs[msg.tabIdx];
+                        string sdisp = editPWD(T.cwd);
                         string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
-                        T.screenBuffer.push_back(prompt);
-                        drawScreen(win, gc, font, T);
+                        T.displayBuffer.push_back(prompt);
+                        makeScreen(win, gc, font, T);
                     }
                     continue;
                 }
 
-                if (msg.tab_index >= 0 && msg.tab_index < (int)tabs.size())
+                if (msg.tabIdx >= 0 && msg.tabIdx < (int)tabs.size())
                 {
-                    tabs[msg.tab_index].screenBuffer.push_back(msg.text);
-                    if (msg.tab_index == active_tab)
-                        drawScreen(win, gc, font, tabs[active_tab]);
+                    tabs[msg.tabIdx].displayBuffer.push_back(msg.text);
+                    if (msg.tabIdx == tabActive)
+                        makeScreen(win, gc, font, tabs[tabActive]);
                 }
             }
         }
 
         // blink active tab cursor only
-        if (active_tab >= 0 && active_tab < (int)tabs.size())
+        if (tabActive >= 0 && tabActive < (int)tabs.size())
         {
-            TabState &T = tabs[active_tab];
+            tabState &T = tabs[tabActive];
             auto now = chrono::steady_clock::now();
             if (chrono::duration_cast<std::chrono::milliseconds>(now - T.lastBlink).count() > 500)
             {
-                T.showCursor = !T.showCursor;
+                T.dispCursor = !T.dispCursor;
                 T.lastBlink = now;
-                drawScreen(win, gc, font, T);
+                makeScreen(win, gc, font, T);
             }
         }
         // tiny sleep
@@ -823,8 +823,8 @@ void run(Window win)
     if (xim)
         XCloseIM(xim);
 
-    XUnmapWindow(dpy, win);
-    XDestroyWindow(dpy, win);
+    XUnmapWindow(disp, win);
+    XDestroyWindow(disp, win);
     return;
 
     // hello
