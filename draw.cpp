@@ -13,7 +13,7 @@ static const int ROWS = 24; // kept (not directly used, but retained)
 #define BORDER 8
 
 // navbar constants
-static const int NAVBAR_H = 30;
+static const int NAVBAR_H = 40;
 static const int TAB_PADDING = 8;
 static const int TAB_SPACING = 4;
 
@@ -79,8 +79,6 @@ static Window create_window(int x, int y, int h, int w, int b)
     return win;
 }
 
-
-// draw one tab content (adapted from your drawScreen; clears only content area)
 static int drawScreen(Window win, GC gc, XFontStruct *font,
                       TabState &T)
 {
@@ -104,11 +102,10 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     static unsigned long greenPixel = WhitePixel(dpy, scr);
     static unsigned long whitePixel = WhitePixel(dpy, scr);
     static unsigned long redPixel = WhitePixel(dpy, scr);
-    static unsigned long yellowPixel = WhitePixel(dpy, scr);
     if (!colorsInit)
     {
         Colormap colormap = DefaultColormap(dpy, scr);
-        XColor green, white, red, yellow, exact;
+        XColor green, white, red, exact;
 
         if (XAllocNamedColor(dpy, colormap, "green", &green, &exact))
             greenPixel = green.pixel;
@@ -119,15 +116,16 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         if (XAllocNamedColor(dpy, colormap, "red", &red, &exact))
             redPixel = red.pixel;
 
-        if (XAllocNamedColor(dpy, colormap, "yellow", &yellow, &exact))
-            yellowPixel = yellow.pixel;
-
         colorsInit = true;
     }
 
     const string promptPrefix = "shre@Term:";
 
-    struct DisplayLine { string text; int promptChars; };
+    struct DisplayLine
+    {
+        string text;
+        int promptChars;
+    };
     vector<DisplayLine> displayLines;
 
     for (const auto &origLine : T.screenBuffer)
@@ -155,7 +153,11 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
                 ++len;
             }
 
-            if (len == 0) { ++pos; ++len; }
+            if (len == 0)
+            {
+                ++pos;
+                ++len;
+            }
 
             string piece = origLine.substr(start, len);
             int promptCharsInPiece = 0;
@@ -169,7 +171,8 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
     int visibleRows = max(1, (winHeight - marginTop) / lineHeight);
 
     int totalLines = (int)displayLines.size();
-    if (T.scrollOffset < 0) T.scrollOffset = 0;
+    if (T.scrollOffset < 0)
+        T.scrollOffset = 0;
     if (T.scrollOffset > max(0, totalLines - visibleRows))
         T.scrollOffset = max(0, totalLines - visibleRows);
 
@@ -185,13 +188,10 @@ static int drawScreen(Window win, GC gc, XFontStruct *font,
         unsigned long color = whitePixel;
         string textToDraw = dl.text;
 
-        if (textToDraw.rfind("ERROR:", 0) == 0) {
+        if (textToDraw.rfind("ERROR:", 0) == 0)
+        {
             color = redPixel;
             textToDraw = textToDraw.substr(7);
-        }
-        if (textToDraw.rfind("REC:", 0) == 0) {
-            color = yellowPixel;
-            textToDraw = textToDraw.substr(4);
         }
 
         if (dl.promptChars > 0)
@@ -303,9 +303,12 @@ static void draw_navbar(Window win, GC gc, int win_w)
     XFillRectangle(dpy, win, gc, 0, 0, win_w, NAVBAR_H);
 
     XSetForeground(dpy, gc, WhitePixel(dpy, scr));
-    XDrawLine(dpy, win, gc, 0, NAVBAR_H-1, win_w, NAVBAR_H-1);
+    XDrawLine(dpy, win, gc, 0, NAVBAR_H - 1, win_w, NAVBAR_H - 1);
 }
 
+// tab chrome
+// struct TabChromePos { int x; int w; };
+// static int active_tab = -1;
 
 // Globals to track hover state (set these from MotionNotify handler)
 int hovered_close_tab = -1;
@@ -433,6 +436,12 @@ static vector<TabChromePos> draw_tabs(Window win, GC gc, XFontStruct *font)
 
     return pos;
 }
+
+// Returns:
+//  -2 if "+" button clicked
+//  -3 if a close button clicked (and sets out_index)
+//  >=0 if a tab was clicked
+//  -1 if nothing clicked
 int navbar_hit_test(int mx, int my, const vector<TabChromePos> &pos,  int *out_index = nullptr)
 {
     
@@ -469,7 +478,7 @@ int navbar_hit_test(int mx, int my, const vector<TabChromePos> &pos,  int *out_i
 }
 
 // add new tab
-static void add_tab(const string& initial_cwd = "/")
+static void add_tab(const string &initial_cwd = "/")
 {
     TabState t;
     t.cwd = initial_cwd;
@@ -481,3 +490,5 @@ static void add_tab(const string& initial_cwd = "/")
     tabs.push_back(std::move(t));
     active_tab = (int)tabs.size() - 1;
 }
+
+// ------------- main loop (adapted from your run()) -------------

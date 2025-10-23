@@ -1,6 +1,67 @@
 #include "headers.cpp"
 
-// ---------------- your original helpers (kept) ----------------
+// // ---------------- your original helpers (kept) ----------------
+
+// forward declarations
+struct TabState;
+extern vector<TabState> tabs;
+
+struct WatchMessage { string text; int tab_index; };
+static mutex mw_queue_mutex;
+static queue<WatchMessage> mw_queue;
+
+static string getCurrentTime()
+{
+    time_t now = time(nullptr);
+    struct tm tmbuf;
+    localtime_r(&now, &tmbuf);
+    char buf[64];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", &tmbuf);
+    return string(buf);
+}
+
+// multiWatch stop requested by UI (run.cpp should set this on Ctrl+C for multiWatch)
+atomic<bool> mw_stop_requested(false);
+
+// For interrupting arbitrary running commands
+static mutex current_pids_mutex;
+static vector<pid_t> current_child_pids; // guarded by current_pids_mutex
+static atomic<bool> cmd_running(false);
+
+// This is an async-safe request flag set by the UI (or by signal handler).
+// run-time loops will check this flag and kill children as soon as possible.
+static volatile sig_atomic_t sigint_request_flag = 0;
+
+// Called by your UI (run.cpp) when user presses Ctrl+C; keeps it async-safe.
+extern "C" void notify_sigint_from_ui()
+{
+    sigint_request_flag = 1;
+    // Also request multiWatch stop
+    mw_stop_requested.store(true);
+}
+
+// A helper executed in runtime loops to handle an outstanding sigint_request_flag.
+// It is safe to call from normal code (not from signal handler).
+static void handle_pending_sigint()
+{
+    if (sigint_request_flag == 0) return;
+    // clear the flag atomically
+    sigint_request_flag = 0;
+
+    // Kill all children we've recorded
+    lock_guard<mutex> lk(current_pids_mutex);
+    for (pid_t p : current_child_pids)
+    {
+        if (p > 0)
+            kill(p, SIGINT);
+    }
+    // Leave current_child_pids in place until parent reaps/waits them.
+}
+
+// =====================================================================
+//                      ORIGINAL execCommand()
+// (kept behaviorally the same; this function is used by some code paths)
+// =====================================================================
 
 vector<string> execCommand(const string &cmd)
 {
@@ -122,6 +183,13 @@ vector<string> execCommand(const string &cmd)
     close(capture_out[1]);
     close(capture_err[1]);
 
+    // Record pids so UI-triggered interrupts can kill them.
+    {
+        lock_guard<mutex> lk(current_pids_mutex);
+        current_child_pids = pids;
+        cmd_running.store(true);
+    }
+
     // read both pipes with poll
     string outBuf, errBuf;
     const int BUF_SZ = 4096;
@@ -132,8 +200,11 @@ vector<string> execCommand(const string &cmd)
     int active = 2;
     while (active > 0)
     {
+        // check for UI-requested SIGINT and handle it (kill children)
+        handle_pending_sigint();
+
         int r = poll(pfds, 2, -1);
-        if (r < 0) { if (errno==EINTR) continue; break; }
+        if (r < 0) { if (errno==EINTR) { handle_pending_sigint(); continue; } break; }
         for (int i = 0; i < 2; ++i)
         {
             if (pfds[i].fd < 0) continue;
@@ -178,6 +249,13 @@ vector<string> execCommand(const string &cmd)
             lastStatus = status;
             if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) hadError = true;
         }
+    }
+
+    // clear current child list
+    {
+        lock_guard<mutex> lk(current_pids_mutex);
+        current_child_pids.clear();
+        cmd_running.store(false);
     }
 
     // If anything was written to stderr, treat as error
@@ -354,6 +432,13 @@ static vector<string> execCommandInDir(const string &cmd, string &cwd_for_tab)
     close(capture_out[1]);
     close(capture_err[1]);
 
+    // Record pids so UI-triggered interrupts can kill them.
+    {
+        lock_guard<mutex> lk(current_pids_mutex);
+        current_child_pids = pids;
+        cmd_running.store(true);
+    }
+
     string outBuf, errBuf; const int BUF_SZ = 4096; char buffer[BUF_SZ];
     struct pollfd pfds[2];
     pfds[0].fd = capture_out[0]; pfds[0].events = POLLIN | POLLHUP | POLLERR;
@@ -361,8 +446,11 @@ static vector<string> execCommandInDir(const string &cmd, string &cwd_for_tab)
     int active = 2;
     while (active > 0)
     {
+        // handle any pending UI-requested SIGINT
+        handle_pending_sigint();
+
         int r = poll(pfds, 2, -1);
-        if (r < 0) { if (errno == EINTR) continue; break; }
+        if (r < 0) { if (errno == EINTR) { handle_pending_sigint(); continue; } break; }
         for (int i = 0; i < 2; ++i)
         {
             if (pfds[i].fd < 0) continue;
@@ -398,6 +486,14 @@ static vector<string> execCommandInDir(const string &cmd, string &cwd_for_tab)
             if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) hadError = true;
         }
     }
+
+    // clear current child list
+    {
+        lock_guard<mutex> lk(current_pids_mutex);
+        current_child_pids.clear();
+        cmd_running.store(false);
+    }
+
     if (!errBuf.empty()) hadError = true;
 
     auto splitLines = [](const string &s)->vector<string>{
@@ -436,3 +532,138 @@ static vector<string> execCommandInDir(const string &cmd, string &cwd_for_tab)
     return result;
 }
 
+// =====================================================================
+//                        MULTIWATCH SECTION
+// =====================================================================
+
+void handle_sigint_multiwatch(int) { mw_stop_requested.store(true); }
+
+// multiWatch: line-by-line updates + runs in tab's cwd (read from tabs[])
+// Note: multiWatch is stoppable by mw_stop_requested (UI should set it on Ctrl+C)
+void multiWatchThreaded_using_pipes(const vector<string> &cmds, int tab_index)
+{
+    if (cmds.empty())
+    {
+        lock_guard<mutex> lk(mw_queue_mutex);
+        mw_queue.push({"multiWatch: no commands provided", tab_index});
+        return;
+    }
+
+    mw_stop_requested.store(false);
+
+    {
+        lock_guard<mutex> lk(mw_queue_mutex);
+        mw_queue.push({"multiWatch: started — press Ctrl+C to stop.", tab_index});
+    }
+
+    while (!mw_stop_requested.load())
+    {
+        string tab_cwd;
+        if (tab_index >= 0 && tab_index < (int)tabs.size())
+        {
+            // tab_cwd = tabs[tab_index].cwd;
+        }
+
+        vector<thread> workers;
+
+        for (const auto &cmd : cmds)
+        {
+            workers.emplace_back([&, cmd]() {
+                int pipefd[2];
+                if (pipe(pipefd) < 0) return;
+
+                pid_t pid = fork();
+                if (pid == 0)
+                {
+                    // CHILD
+                    close(pipefd[0]);
+                    dup2(pipefd[1], STDOUT_FILENO);
+                    dup2(pipefd[1], STDERR_FILENO);
+
+                    if (!tab_cwd.empty())
+                        chdir(tab_cwd.c_str());
+
+                    execlp("bash", "bash", "-c", cmd.c_str(), (char *)NULL);
+                    _exit(127);
+                }
+                else if (pid > 0)
+                {
+                    // PARENT
+                    close(pipefd[1]);
+                    fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
+
+                    {
+                        lock_guard<mutex> lk(current_pids_mutex);
+                        current_child_pids.push_back(pid);
+                        cmd_running.store(true);
+                    }
+
+                    string outBuf;
+                    const int BUF_SZ = 4096;
+                    char buf[BUF_SZ];
+                    struct pollfd pfd{pipefd[0], POLLIN | POLLHUP | POLLERR, 0};
+                    bool done = false;
+
+                    while (!done && !mw_stop_requested.load())
+                    {
+                        handle_pending_sigint();
+
+                        int r = poll(&pfd, 1, 200);
+                        if (r > 0 && (pfd.revents & POLLIN))
+                        {
+                            ssize_t n = read(pipefd[0], buf, BUF_SZ);
+                            if (n > 0)
+                                outBuf.append(buf, n);
+                            else if (n == 0)
+                                done = true;
+                        }
+                        else if (pfd.revents & (POLLHUP | POLLERR))
+                            done = true;
+                    }
+
+                    close(pipefd[0]);
+                    waitpid(pid, nullptr, 0);
+
+                    {
+                        lock_guard<mutex> lk(current_pids_mutex);
+                        current_child_pids.erase(
+                            remove(current_child_pids.begin(), current_child_pids.end(), pid),
+                            current_child_pids.end());
+                        if (current_child_pids.empty())
+                            cmd_running.store(false);
+                    }
+
+                    // Push output immediately
+                    vector<string> lines;
+                    stringstream ss(outBuf);
+                    string line;
+                    while (getline(ss, line))
+                        lines.push_back(line);
+                    if (lines.empty()) lines.push_back("(no output)");
+
+                    lock_guard<mutex> qlk(mw_queue_mutex);
+                    ostringstream header;
+                    header << "\"" << cmd << "\" , " << getCurrentTime() << " :";
+                    mw_queue.push({header.str(), tab_index});
+                    mw_queue.push({"----------------------------------------------------", tab_index});
+                    for (auto &l : lines) mw_queue.push({l, tab_index});
+                    mw_queue.push({"----------------------------------------------------", tab_index});
+                }
+            });
+        }
+
+        // Wait for all commands to finish before next cycle
+        for (auto &t : workers)
+            if (t.joinable())
+                t.join();
+
+        if (mw_stop_requested.load()) break;
+
+        this_thread::sleep_for(chrono::seconds(2));
+    }
+
+    {
+        lock_guard<mutex> lk(mw_queue_mutex);
+        // mw_queue.push({"multiWatch: stopped. Returning to prompt...", tab_index});
+    }
+}

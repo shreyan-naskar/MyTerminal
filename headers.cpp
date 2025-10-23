@@ -1,11 +1,11 @@
-#include<iostream>
+#include <iostream>
 #include <sstream>
 #include <fstream>
 #include <fcntl.h>
-#include<cctype>
-#include<sys/types.h>
-#include<sys/wait.h>
-#include<sys/poll.h>
+#include <cctype>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/poll.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
@@ -20,5 +20,31 @@
 #include <regex>
 #include <sys/stat.h>
 #include <limits.h>
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <fcntl.h>
+#include <cctype>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <sys/poll.h>
+#include <cstdio>
+#include <err.h>
+#include <string>
+#include <chrono>
+#include <vector>
+#include <unistd.h>
+#include <regex>
+#include <sys/stat.h>
+#include <limits.h>
+#include <signal.h>
+#include <cerrno>
+#include <cstring>
+#include <thread>
+#include <mutex>
+#include <queue>
+#include <iomanip>
+#include <sstream>
+#include <atomic>
 
 using namespace std;

@@ -1,6 +1,6 @@
 #include "headers.cpp"
 
-string FILENAME;
+string FILENAME = "./input_log.txt";
 int len = 0;
 string getPWD()
 {

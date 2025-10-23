@@ -1251,3 +1251,40 @@ bal"
   1235  cd Desktop/GITHUB/MyTerminal
   1236  clear
   1237  Desktop/GITHUB/MyTerminal
+  1238  cd
+  1239  Desktop/GITHUB/MyTerminal
+  1240  cd Desktop/GITHUB/MyTerminal
+  1241  clear
+  1242  cd
+  1243  cd Desktop/GITHUB/MyTerminal
+  1244  clear
+  1245  cd ..
+  1246  cd
+  1247  cd Desktop/GITHUB/MyTerminal
+  1248  multiwatch [ "ls", "ls -l", "ls -al" ]
+  1249  multiWatch [ "ls", "ls -l", "ls -al" ]
+  1250  cd
+  1251  cd Desktop/GITHUB/MyTerminal
+  1252  multiWatch [ "ls", "ls -l", "ls -al" ]
+  1253  cd
+  1254  cd Desktop/GITHUB/MyTerminal
+  1255  clear
+  1256  cd
+  1257  cd Desktop/GITHUB/MyTerminal
+  1258  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1259  clear
+  1260  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1261  cwd
+  1262  pwd
+  1263  cwd
+  1264  pwd
+  1265  ls -l
+  1266  ls
+  1267  sls
+  1268  ls
+  1269  l
+  1270  sls
+  1271  pwd
+  1272  cd
+  1273  cd Desktop/GITHUB/MyTerminal
+  1274  multiWatch [ "echo bara", "echo gud", "echo bal" ]

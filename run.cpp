@@ -2,10 +2,11 @@
 #include "draw.cpp"
 #include "exec.cpp"
 
-int run(Window win)
+void run(Window win)
 {
     // font + gc
-    XFontStruct *font = XLoadQueryFont(dpy, "8x16");
+    XFontStruct *font = XLoadQueryFont(dpy, "-misc-fixed-bold-r-normal--20-200-75-75-c-100-iso8859-1");
+
     if (!font)
         font = XLoadQueryFont(dpy, "fixed");
     GC gc = XCreateGC(dpy, win, 0, nullptr);
@@ -71,7 +72,7 @@ int run(Window win)
 
                 if (hit == -2) // "+" clicked
                 {
-                    add_tab("/home/swagnik");
+                    add_tab("/");
                     draw_navbar(win, gc, wa.width);
                     tpos = draw_tabs(win, gc, font);
                     drawScreen(win, gc, font, tabs[active_tab]);
@@ -100,7 +101,59 @@ int run(Window win)
                     drawScreen(win, gc, font, tabs[active_tab]);
                     continue;
                 }
+
+                // content area events (scroll)
+                if (active_tab >= 0 && active_tab < (int)tabs.size())
+                {
+                    TabState &T = tabs[active_tab];
+
+                    int lineHeight = font->ascent + font->descent;
+                    int visibleRows = max(1, (wa.height - (NAVBAR_H + 30)) / lineHeight);
+
+                    if (event.xbutton.button == Button4)
+                    { // wheel up
+                        T.scrollOffset = max(0, T.scrollOffset - SCROLL_STEP);
+                        T.userScrolled = true;
+                        drawScreen(win, gc, font, T);
+                    }
+                    else if (event.xbutton.button == Button5)
+                    { // wheel down
+                        int totalDisplayLines = drawScreen(win, gc, font, T);
+                        T.scrollOffset = min(max(0, totalDisplayLines - visibleRows),
+                                             T.scrollOffset + SCROLL_STEP);
+                        if (T.scrollOffset >= max(0, totalDisplayLines - visibleRows))
+                            T.userScrolled = false;
+                        drawScreen(win, gc, font, T);
+                    }
+                }
             }
+            else if (event.type == MotionNotify)
+            {
+                hovered_close_tab = -1;
+                hovered_plus = false;
+
+                int mx = event.xmotion.x;
+                // int my = event.xmotion.y;
+
+                auto tpos = draw_tabs(win, gc, font); // or cache it globally
+
+                for (size_t i = 0; i < tpos.size(); ++i)
+                {
+                    if (tpos[i].is_plus)
+                    {
+                        if (mx >= tpos[i].x && mx <= tpos[i].x + tpos[i].w)
+                            hovered_plus = true;
+                    }
+                    else
+                    {
+                        if (mx >= tpos[i].close_x && mx <= tpos[i].close_x + tpos[i].close_w)
+                            hovered_close_tab = i;
+                    }
+                }
+
+                draw_tabs(win, gc, font); // redraw with hover state
+            }
+
             else if (event.type == KeyPress)
             {
                 if (!(active_tab >= 0 && active_tab < (int)tabs.size()))
@@ -178,7 +231,7 @@ int run(Window win)
                     }
                     else
                     {
-                        return 0;
+                        return;
                     }
                 }
 
@@ -323,7 +376,30 @@ int run(Window win)
                     drawScreen(win, gc, font, T);
                     continue;
                 }
+                if ((event.xkey.state & ControlMask) && keysym == XK_Tab)
+                {
+                    if (!tabs.empty())
+                    {
+                        active_tab = (active_tab + 1) % tabs.size();
+                        draw_navbar(win, gc, wa.width);
+                        draw_tabs(win, gc, font);
+                        drawScreen(win, gc, font, tabs[active_tab]);
+                    }
+                    continue;
+                }
 
+                // Ctrl + Shift + Tab → previous tab
+                if ((event.xkey.state & ControlMask) && (event.xkey.state & ShiftMask) && keysym == XK_ISO_Left_Tab)
+                {
+                    if (!tabs.empty())
+                    {
+                        active_tab = (active_tab - 1 + tabs.size()) % tabs.size();
+                        draw_navbar(win, gc, wa.width);
+                        draw_tabs(win, gc, font);
+                        drawScreen(win, gc, font, tabs[active_tab]);
+                    }
+                    continue;
+                }
                 // Tab completion (your logic)
                 if (keysym == XK_Tab)
                 {
@@ -360,14 +436,33 @@ int run(Window win)
                         {
                             for (size_t i = 0; i < T.recs.size(); i++)
                                 T.showRec += to_string(i + 1) + ". " + T.recs[i] + "  ";
-                            T.screenBuffer.push_back("REC:" + T.showRec);
-                            T.screenBuffer.push_back("REC:Choose from above options:");
+                            T.screenBuffer.push_back(T.showRec);
+                            T.screenBuffer.push_back("Choose from above options:");
                             T.input.clear();
                             T.currCursorPos = 0;
                             T.showRec.clear();
                         }
                         drawScreen(win, gc, font, T);
                     }
+                    continue;
+                }
+                // Ctrl + C handling for multiWatch stop
+                // Unified Ctrl + C handling for normal commands and multiWatch
+                if ((event.xkey.state & ControlMask) && (keysym == XK_c || keysym == XK_C))
+                {
+                    notify_sigint_from_ui(); // tell execute.cpp to stop running process
+
+                    TabState &T = tabs[active_tab];
+                    T.screenBuffer.push_back("^C");
+
+                    string sdisp = formatPWD(T.cwd);
+                    string prompt = (sdisp == "/")
+                                        ? ("shre@Term:" + sdisp + "$ ")
+                                        : ("shre@Term:~" + sdisp + "$ ");
+                    T.screenBuffer.push_back(prompt);
+                    T.input.clear();
+                    T.currCursorPos = 0;
+                    drawScreen(win, gc, font, T);
                     continue;
                 }
 
@@ -496,18 +591,73 @@ int run(Window win)
                                 drawScreen(win, gc, font, T);
                                 continue;
                             }
+                            if (trimmed.rfind("multiWatch", 0) == 0)
+                            {
+                                size_t start = T.input.find('[');
+                                size_t end = T.input.find(']');
+                                if (start != string::npos && end != string::npos && end > start)
+                                {
+                                    string inside = T.input.substr(start + 1, end - start - 1);
+                                    vector<string> cmds;
+                                    regex r("\"([^\"]+)\"");
+                                    smatch m;
+                                    string::const_iterator s(inside.cbegin());
+                                    while (regex_search(s, inside.cend(), m, r))
+                                    {
+                                        cmds.push_back(m[1]);
+                                        s = m.suffix().first;
+                                    }
+
+                                    if (cmds.empty())
+                                    {
+                                        T.screenBuffer.push_back("multiWatch: No valid commands found.");
+                                    }
+                                    else
+                                    {
+                                        T.screenBuffer.push_back("Started multiWatch thread...");
+                                        drawScreen(win, gc, font, T); // immediate feedback
+
+                                        // ✅ Correct thread launch
+                                        thread([cmds, tab_index = active_tab]()
+                                               { multiWatchThreaded_using_pipes(cmds, tab_index); })
+                                            .detach();
+                                    }
+                                }
+                                else
+                                {
+                                    T.screenBuffer.push_back("Usage: multiWatch [\"cmd1\", \"cmd2\", ...]");
+                                }
+
+                                // prepare next prompt
+                                T.input.clear();
+                                T.currCursorPos = 0;
+                                string sdisp = formatPWD(T.cwd);
+                                string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ")
+                                                               : ("shre@Term:~" + sdisp + "$ ");
+                                T.screenBuffer.push_back(prompt);
+                                drawScreen(win, gc, font, T);
+                                continue;
+                            }
 
                             // execute in tab cwd
                             vector<string> outputs = execCommandInDir(T.input, T.cwd);
                             T.input.clear();
                             T.currCursorPos = 0;
 
+                            // Check if this command is multiWatch
+                            bool isMultiWatch = (T.input.find("multiWatch") != string::npos);
+
+                            // Push command output lines
                             for (const auto &line : outputs)
                                 T.screenBuffer.push_back(line);
 
-                            string sdisp = formatPWD(T.cwd);
-                            string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
-                            T.screenBuffer.push_back(prompt);
+                            // Only show prompt if NOT multiWatch
+                            if (!isMultiWatch)
+                            {
+                                string sdisp = formatPWD(T.cwd);
+                                string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+                                T.screenBuffer.push_back(prompt);
+                            }
 
                             int totalDisplayLines = drawScreen(win, gc, font, T);
                             if (!T.userScrolled)
@@ -621,6 +771,36 @@ int run(Window win)
                 }
             }
         } // while XPending
+        // ===== drain multiWatch queue (main GUI thread MUST do this) =====
+        {
+            std::lock_guard<std::mutex> lk(mw_queue_mutex);
+            while (!mw_queue.empty())
+            {
+                auto msg = mw_queue.front();
+                mw_queue.pop();
+
+                if (msg.text == "__MULTIWATCH_DONE__")
+                {
+                    // MultiWatch finished → show prompt
+                    if (msg.tab_index >= 0 && msg.tab_index < (int)tabs.size())
+                    {
+                        TabState &T = tabs[msg.tab_index];
+                        string sdisp = formatPWD(T.cwd);
+                        string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+                        T.screenBuffer.push_back(prompt);
+                        drawScreen(win, gc, font, T);
+                    }
+                    continue;
+                }
+
+                if (msg.tab_index >= 0 && msg.tab_index < (int)tabs.size())
+                {
+                    tabs[msg.tab_index].screenBuffer.push_back(msg.text);
+                    if (msg.tab_index == active_tab)
+                        drawScreen(win, gc, font, tabs[active_tab]);
+                }
+            }
+        }
 
         // blink active tab cursor only
         if (active_tab >= 0 && active_tab < (int)tabs.size())
@@ -642,4 +822,10 @@ int run(Window win)
         XDestroyIC(xic);
     if (xim)
         XCloseIM(xim);
+
+    XUnmapWindow(dpy, win);
+    XDestroyWindow(dpy, win);
+    return;
+
+    // hello
 }
