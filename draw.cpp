@@ -437,11 +437,6 @@ static vector<TabChromePos> draw_tabs(Window win, GC gc, XFontStruct *font)
     return pos;
 }
 
-// Returns:
-//  -2 if "+" button clicked
-//  -3 if a close button clicked (and sets out_index)
-//  >=0 if a tab was clicked
-//  -1 if nothing clicked
 int navbar_hit_test(int mx, int my, const vector<TabChromePos> &pos,  int *out_index = nullptr)
 {
     
@@ -490,5 +485,3 @@ static void add_tab(const string &initial_cwd = "/")
     tabs.push_back(std::move(t));
     active_tab = (int)tabs.size() - 1;
 }
-
-// ------------- main loop (adapted from your run()) -------------

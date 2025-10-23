@@ -1288,3 +1288,4 @@ bal"
   1272  cd
   1273  cd Desktop/GITHUB/MyTerminal
   1274  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1275  ls

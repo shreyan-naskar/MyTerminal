@@ -5,7 +5,7 @@
 void run(Window win)
 {
     // font + gc
-    XFontStruct *font = XLoadQueryFont(dpy, "-misc-fixed-bold-r-normal--20-200-75-75-c-100-iso8859-1");
+    XFontStruct *font = XLoadQueryFont(dpy, "8x16");
 
     if (!font)
         font = XLoadQueryFont(dpy, "fixed");

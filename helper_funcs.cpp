@@ -8,7 +8,7 @@ string getPWD()
     string currentDir;
     if (getcwd(cwd, sizeof(cwd)) != nullptr)
         currentDir = string(cwd);
-    if (currentDir.size() < len)
+    if (int(currentDir.size()) < len)
         return currentDir;
     return currentDir.substr(len);
 }
@@ -16,7 +16,7 @@ string getPWD()
 // format per-tab CWD the same way
 static string formatPWD(const string &cwd)
 {
-    if (cwd.size() < len) return cwd;
+    if (int(cwd.size()) < len) return cwd;
     return cwd.substr(len);
 }
 

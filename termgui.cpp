@@ -30,5 +30,5 @@ int main(int argc, char** argv)
 
     XUnmapWindow(dpy, win);
     XDestroyWindow(dpy, win);
-    return 0;
+    return argc;
 }
