@@ -23,6 +23,7 @@ struct tabState
 {
     // UI buffers / state
     vector<string> displayBuffer;
+    vector<string> oldBuffer;
     string input;
     int currentCursorPosition = 0;
     bool searchFlag = false;

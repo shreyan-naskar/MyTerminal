@@ -13,6 +13,8 @@ static queue<watchMsg> mwQueue;
 
 // multiWatch stop requested by UI (run.cpp should set this on Ctrl+C for multiWatch)
 atomic<bool> mwStopReq(false);
+atomic<bool> mwDone(false);
+atomic<bool> cmdRunning(false);
 
 // For interrupting arbitrary running commands
 static mutex currPidsMutex;
@@ -26,9 +28,21 @@ static volatile sig_atomic_t sigintReqFlag = 0;
 // Called by your UI (run.cpp) when user presses Ctrl+C; keeps it async-safe.
 extern "C" void getSigint()
 {
-    sigintReqFlag = 1;
-    // Also request multiWatch stop
+    // Request stop of multiWatch and other loops
     mwStopReq.store(true);
+
+    // Set the async flag to be handled by handle_pending_sigint()
+    sigintReqFlag = 1;
+
+    // Also proactively kill any recorded child pids (best-effort, non-blocking)
+    {
+        lock_guard<mutex> lk(currPidsMutex);
+        for (pid_t p : currChildPids)
+        {
+            if (p > 0)
+                kill(p, SIGINT);
+        }
+    }
 }
 
 // A helper executed in runtime loops to handle an outstanding sigintReqFlag.
@@ -531,67 +545,61 @@ void sigintMultiWatch(int) { mwStopReq.store(true); }
 
 // multiWatch: line-by-line updates + runs in tab's cwd (read from tabs[])
 // Note: multiWatch is stoppable by mwStopReq (UI should set it on Ctrl+C)
-void multiWatchThreaded_using_pipes(const vector<string> &cmds, int tabIdx)
+void multiWatchThreaded_using_pipes(const vector<string> &cmds, int tab_index, const vector<string> &oldBuffer)
+
 {
     if (cmds.empty())
-    {
-        lock_guard<mutex> lk(mwQueueMutex);
-        mwQueue.push({"multiWatch: no commands provided", tabIdx});
         return;
-    }
+    if (tab_index < 0 || tab_index >= (int)tabs.size())
+        return;
 
+    tabState &T = tabs[tab_index];
+
+    // Save old screen buffer for restore
+
+    T.displayBuffer.clear();
+    T.displayBuffer.push_back("multiWatch — starting...");
     mwStopReq.store(false);
-
-    {
-        lock_guard<mutex> lk(mwQueueMutex);
-        mwQueue.push({"multiWatch: started :: press Ctrl+C to stop.", tabIdx});
-    }
+    mwDone.store(false);
+    cmdRunning.store(true);
 
     while (!mwStopReq.load())
     {
-        string tab_cwd;
-        if (tabIdx >= 0 && tabIdx < (int)tabs.size())
-        {
-            // tab_cwd = tabs[tabIdx].cwd;
-        }
-
-        vector<thread> watchers;
+        vector<thread> workers;
+        vector<pair<string, string>> results;
+        mutex results_mtx;
 
         for (const auto &cmd : cmds)
         {
-            watchers.emplace_back([&, cmd]() {
+            workers.emplace_back([&, cmd]()
+                                 {
                 int pipefd[2];
                 if (pipe(pipefd) < 0) return;
 
                 pid_t pid = fork();
                 if (pid == 0)
                 {
-                    // CHILD
+                    // Child: redirect stdout/stderr to pipe
                     close(pipefd[0]);
                     dup2(pipefd[1], STDOUT_FILENO);
                     dup2(pipefd[1], STDERR_FILENO);
-
-                    if (!tab_cwd.empty())
-                        chdir(tab_cwd.c_str());
-
-                    execlp("bash", "bash", "-c", cmd.c_str(), (char *)NULL);
+                    execlp("bash", "bash", "-c", cmd.c_str(), (char*)NULL);
                     _exit(127);
                 }
                 else if (pid > 0)
                 {
-                    // PARENT
+                    // Parent
                     close(pipefd[1]);
                     fcntl(pipefd[0], F_SETFL, O_NONBLOCK);
 
+                    // Register PID
                     {
                         lock_guard<mutex> lk(currPidsMutex);
                         currChildPids.push_back(pid);
-                        cmdUnderExec.store(true);
                     }
 
-                    string opBuffer;
-                    const int BUFFER_SIZE = 4096;
-                    char buf[BUFFER_SIZE];
+                    string outBuf;
+                    char buf[4096];
                     struct pollfd pfd{pipefd[0], POLLIN | POLLHUP | POLLERR, 0};
                     bool done = false;
 
@@ -600,60 +608,100 @@ void multiWatchThreaded_using_pipes(const vector<string> &cmds, int tabIdx)
                         handleSigintLeft();
 
                         int r = poll(&pfd, 1, 200);
-                        if (r > 0 && (pfd.revents & POLLIN))
+                        if (r > 0)
                         {
-                            ssize_t n = read(pipefd[0], buf, BUFFER_SIZE);
-                            if (n > 0)
-                                opBuffer.append(buf, n);
-                            else if (n == 0)
+                            if (pfd.revents & POLLIN)
+                            {
+                                ssize_t n = read(pipefd[0], buf, sizeof(buf));
+                                if (n > 0)
+                                    outBuf.append(buf, n);
+                                else if (n == 0)
+                                    done = true;
+                            }
+                            else if (pfd.revents & (POLLHUP | POLLERR))
+                            {
                                 done = true;
+                            }
                         }
-                        else if (pfd.revents & (POLLHUP | POLLERR))
-                            done = true;
                     }
 
+                    // Stop or wait
+                    int status = 0;
+                    if (mwStopReq.load())
+                    {
+                        kill(pid, SIGINT);
+                        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                        kill(pid, SIGKILL);
+                    }
+                    waitpid(pid, &status, 0);
                     close(pipefd[0]);
-                    waitpid(pid, nullptr, 0);
 
+                    // Remove PID record
                     {
                         lock_guard<mutex> lk(currPidsMutex);
-                        currChildPids.erase(
-                            remove(currChildPids.begin(), currChildPids.end(), pid),
-                            currChildPids.end());
-                        if (currChildPids.empty())
-                            cmdUnderExec.store(false);
+                        auto it = std::find(currChildPids.begin(), currChildPids.end(), pid);
+                        if (it != currChildPids.end())
+                            currChildPids.erase(it);
                     }
 
-                    // Push output immediately
-                    vector<string> lines;
-                    stringstream ss(opBuffer);
-                    string line;
-                    while (getline(ss, line))
-                        lines.push_back(line);
-                    if (lines.empty()) lines.push_back("(no output)");
-
-                    lock_guard<mutex> qlk(mwQueueMutex);
-                    ostringstream header;
-                    header << "\"" << cmd << "\" , " << getTimeNow() << " :";
-                    mwQueue.push({header.str(), tabIdx});
-                    mwQueue.push({"----------------------------------------------------", tabIdx});
-                    for (auto &l : lines) mwQueue.push({l, tabIdx});
-                    mwQueue.push({"----------------------------------------------------", tabIdx});
-                }
-            });
+                    // Save result
+                    lock_guard<mutex> lk(results_mtx);
+                    results.emplace_back(cmd, outBuf.empty() ? "(no output)\n" : outBuf);
+                } });
         }
 
-        // Wait for all commands to finish before next cycle
-        for (auto &t : watchers)
+        for (auto &t : workers)
             if (t.joinable())
                 t.join();
 
-        if (mwStopReq.load()) break;
+        // Update output like "watch"
+        {
+            T.displayBuffer.clear();
+            T.displayBuffer.push_back("multiWatch — " + getTimeNow() + " (Ctrl+C to stop)");
+            T.displayBuffer.push_back("====================================================");
 
-        this_thread::sleep_for(chrono::seconds(2));
+            for (auto &[cmd, out] : results)
+            {
+                T.displayBuffer.push_back("\"" + cmd + "\" output:");
+                T.displayBuffer.push_back("----------------------------------------------------");
+                std::stringstream ss(out);
+                std::string line;
+                while (std::getline(ss, line))
+                    T.displayBuffer.push_back(line);
+                T.displayBuffer.push_back("----------------------------------------------------");
+            }
+        }
+
+        // Refresh every 2s (with frequent stop checks)
+        for (int i = 0; i < 20 && !mwStopReq.load(); ++i)
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
+    // Cleanup any leftover child processes
     {
-        lock_guard<mutex> lk(mwQueueMutex);
+        lock_guard<mutex> lk(currPidsMutex);
+        for (pid_t p : currChildPids)
+            if (p > 0)
+                kill(p, SIGINT);
+        currChildPids.clear();
     }
+
+    // === Restore previous screen ===
+    T.displayBuffer = oldBuffer;
+    // T.displayBuffer.push_back("^C");
+
+    std::string sdisp = editPWD(T.cwd);
+    // std::string prompt = (sdisp == "/")
+    //                          ? ("swagnik@myterm:" + sdisp + "$ ")
+    //                          : ("swagnik@myterm:~" + sdisp + "$ ");
+    // T.displayBuffer.push_back(prompt);
+
+    T.input.clear();
+    T.currentCursorPosition = 0;
+
+    // Reset state flags so the next command works
+    cmdRunning.store(false);
+    mwDone.store(true);
+    mwStopReq.store(false);
+    sigintReqFlag = 0; //
 }

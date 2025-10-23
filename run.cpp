@@ -450,19 +450,35 @@ void run(Window win)
                 // Unified Ctrl + C handling for normal commands and multiWatch
                 if ((event.xkey.state & ControlMask) && (keysym == XK_c || keysym == XK_C))
                 {
-                    getSigint(); // tell execute.cpp to stop running process
+                    // Request stop from execute.cpp (async-safe)
+                        getSigint();
 
-                    tabState &T = tabs[tabActive];
-                    T.displayBuffer.push_back("^C");
+                        // Give watcher thread a short timeout to finish its cleanup & restore buffer.
+                        // We poll mwDone (set by execute.cpp when multiWatch ends).
+                        for (int i = 0; i < 10; ++i)
+                        {
+                            if (mwDone.load())
+                                break;
+                            this_thread::sleep_for(chrono::milliseconds(50));
+                        }
 
-                    string sdisp = editPWD(T.cwd);
-                    string prompt = (sdisp == "/")
-                                        ? ("shre@Term:" + sdisp + "$ ")
-                                        : ("shre@Term:~" + sdisp + "$ ");
-                    T.displayBuffer.push_back(prompt);
-                    T.input.clear();
-                    T.currentCursorPosition = 0;
-                    makeScreen(win, gc, font, T);
+                        // Reset stop flags so the next command can run normally.
+                        mwStopReq.store(false);
+                        mwDone.store(false);
+                        cmdRunning.store(false);
+
+                        // Append ^C and prompt to screenBuffer and redraw
+                        tabState &T2 = tabs[tabActive];
+                        T2.displayBuffer.push_back("^C");
+
+                        string sdisp = editPWD(T2.cwd);
+                        string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
+                        T2.displayBuffer.push_back(prompt);
+                        T2.input.clear();
+                        T2.currentCursorPosition = 0;
+
+                        makeScreen(win, gc, font, T2);
+                        
                     continue;
                 }
 
@@ -592,53 +608,56 @@ void run(Window win)
                                 continue;
                             }
                             if (stripped.rfind("multiWatch", 0) == 0)
-                            {
-                                size_t start = T.input.find('[');
-                                size_t end = T.input.find(']');
-                                if (start != string::npos && end != string::npos && end > start)
                                 {
-                                    string inside = T.input.substr(start + 1, end - start - 1);
-                                    vector<string> cmds;
-                                    regex r("\"([^\"]+)\"");
-                                    smatch m;
-                                    string::const_iterator s(inside.cbegin());
-                                    while (regex_search(s, inside.cend(), m, r))
+                                    size_t start = T.input.find('[');
+                                    size_t end = T.input.find(']');
+                                    if (start != string::npos && end != string::npos && end > start)
                                     {
-                                        cmds.push_back(m[1]);
-                                        s = m.suffix().first;
-                                    }
+                                        string inside = T.input.substr(start + 1, end - start - 1);
+                                        vector<string> cmds;
+                                        regex r("\"([^\"]+)\"");
+                                        smatch m;
+                                        string::const_iterator s(inside.cbegin());
+                                        while (regex_search(s, inside.cend(), m, r))
+                                        {
+                                            cmds.push_back(m[1]);
+                                            s = m.suffix().first;
+                                        }
 
-                                    if (cmds.empty())
-                                    {
-                                        T.displayBuffer.push_back("multiWatch: No valid commands found.");
+                                        if (cmds.empty())
+                                        {
+                                            T.displayBuffer.push_back("multiWatch: No valid commands found.");
+                                        }
+                                        else
+                                        {
+                                            // ✅ Copy old screen buffer safely
+                                            vector<string> oldBuffer;
+                                            oldBuffer.insert(oldBuffer.end(), T.displayBuffer.begin(), T.displayBuffer.end());
+
+                                            // Clear screen for watch mode
+                                            T.displayBuffer.clear();
+                                            T.displayBuffer.push_back("multiWatch — starting...");
+
+                                            // Mark multiwatch active
+                                            mwStopReq.store(false);
+                                            mwDone.store(false);
+
+                                            // ✅ Pass oldBuffer to thread so it can restore later
+                                            thread([cmds, tab_index = tabActive, oldBuffer]()
+                                                   { multiWatchThreaded_using_pipes(cmds, tab_index, oldBuffer); })
+                                                .detach();
+                                        }
                                     }
                                     else
                                     {
-                                        T.displayBuffer.push_back("Started multiWatch thread...");
-                                        makeScreen(win, gc, font, T); // immediate feedback
-
-                                        // ✅ Correct thread launch
-                                        thread([cmds, tabIdx = tabActive]()
-                                               { multiWatchThreaded_using_pipes(cmds, tabIdx); })
-                                            .detach();
+                                        T.displayBuffer.push_back("Usage: multiWatch [\"cmd1\", \"cmd2\", ...]");
                                     }
-                                }
-                                else
-                                {
-                                    T.displayBuffer.push_back("Usage: multiWatch [\"cmd1\", \"cmd2\", ...]");
-                                }
 
-                                // prepare next prompt
-                                T.input.clear();
-                                T.currentCursorPosition = 0;
-                                string sdisp = editPWD(T.cwd);
-                                string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ")
-                                                               : ("shre@Term:~" + sdisp + "$ ");
-                                T.displayBuffer.push_back(prompt);
-                                makeScreen(win, gc, font, T);
-                                continue;
-                            }
-
+                                    // Clear input for next command
+                                    T.input.clear();
+                                    T.currentCursorPosition = 0;
+                                    break;
+                                }
                             // execute in tab cwd
                             vector<string> outputs = execInDir(T.input, T.cwd);
                             T.input.clear();

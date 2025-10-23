@@ -1350,3 +1350,27 @@ bal"
   1334  cd
   1335  cd Desktop/GITHUB/MyTerminal
   1336  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1337  echo "gud
+
+bal"
+  1338  cd
+  1339  cd Desktop/GITHUB/MyTerminal
+  1340  sort < designDoc.txt
+  1341  clear
+  1342  sort < input_log.txt
+  1343  sort < designDoc.txt
+  1344  clear
+  1345  touch a.txt
+  1346  sort < input_log.txt > a.txt
+  1347  cat a.txt
+  1348  clear
+  1349  ls
+  1350  clear
+  1351  cat all.cpp | sort | more
+  1352  clear
+  1353  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1354  clear
+  1355  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1356  ls
+  1357  multiWatch [ "echo bara", "echo gud", "echo bal" ]
+  1358  ls
