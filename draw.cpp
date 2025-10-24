@@ -17,7 +17,7 @@ static const int NAVBAR_H = 40;
 static const int TAB_PADDING = 8;
 static const int TAB_SPACING = 4;
 
-// ------------- Per-tab state ---------------
+//  Per-tab state
 
 struct tabState
 {
@@ -318,10 +318,6 @@ static void makeNavBar(Window win, GC gc, int windowW)
     XDrawLine(disp, win, gc, 0, NAVBAR_H - 1, windowW, NAVBAR_H - 1);
 }
 
-// tab chrome
-// struct tabPosNavbar { int x; int w; };
-// static int tabActive = -1;
-
 // Globals to track hover state (set these from MotionNotify handler)
 int howerXClose = -1;
 bool howerPlusTab = false;
@@ -347,7 +343,7 @@ static vector<tabPosNavbar> makeTabs(Window win, GC gc, XFontStruct *font)
     int rad = 10;
     int gap = 6;
 
-    // --- Reserve space for "+" button ---
+    // Reserve space for "+" button
     int plusW = 50;
     int availableW = windowW - plusW - (gap * (int)tabs.size()) - 20;
     int totalTabs = max(1, (int)tabs.size());
@@ -368,25 +364,25 @@ static vector<tabPosNavbar> makeTabs(Window win, GC gc, XFontStruct *font)
         unsigned long bg = active ? activeBg : inactiveBg;
         unsigned long textc = active ? activeText : inactiveText;
 
-        // --- Tab background ---
+        // Tab background
         XSetForeground(disp, gc, bg);
         XFillArc(disp, win, gc, x, y, rad * 2, rad * 2, 90 * 64, 90 * 64);
         XFillArc(disp, win, gc, x + tabW - rad * 2, y, rad * 2, rad * 2, 0, 90 * 64);
         XFillRectangle(disp, win, gc, x + rad, y, tabW - 2 * rad, tabH);
         XFillRectangle(disp, win, gc, x, y + rad, tabW, tabH - rad);
 
-        // --- Active tab indicator ---
+        // Active tab indicator
         if (active)
         {
             XSetForeground(disp, gc, 0xFF0000);
             XFillRectangle(disp, win, gc, x, y + tabH - 3, tabW, 3);
         }
 
-        // --- Border ---
+        // Border
         XSetForeground(disp, gc, borderColor);
         XDrawRectangle(disp, win, gc, x, y, tabW - 1, tabH);
 
-        // --- Label text ---
+        // Label text
         XCharStruct fullTab;
         int dir, ascent, descent;
         XTextExtents(font, label.c_str(), (int)label.size(), &dir, &ascent, &descent, &fullTab);
@@ -397,7 +393,7 @@ static vector<tabPosNavbar> makeTabs(Window win, GC gc, XFontStruct *font)
         XSetForeground(disp, gc, textc);
         XDrawString(disp, win, gc, textX, textY, label.c_str(), (int)label.size());
 
-        // --- Close button ---
+        // Close button
         int closeSize = 18;
         int xClose = x + tabW - closeSize - 8;
         int closeY = y + (tabH - closeSize) / 2;
@@ -408,7 +404,7 @@ static vector<tabPosNavbar> makeTabs(Window win, GC gc, XFontStruct *font)
         XSetForeground(disp, gc, closeBg);
         XFillArc(disp, win, gc, xClose, closeY, closeSize, closeSize, 0, 360 * 64);
 
-        // --- Centered "X" ---
+        // Centered "X"
         string cross = "x";
         XCharStruct cross_fullTab;
         int dir2, ascent2, descent2;
@@ -422,7 +418,7 @@ static vector<tabPosNavbar> makeTabs(Window win, GC gc, XFontStruct *font)
         pos.push_back({x, tabW, xClose, closeSize, false});
     }
 
-    // --- "+" button ---
+    // "+" button
     int plusX = windowW - plusW - 10;
     int plusY = y;
     unsigned long plusBg = howerPlusTab ? 0x1E8449 : 0x27AE60; // darker on hover
@@ -436,7 +432,7 @@ static vector<tabPosNavbar> makeTabs(Window win, GC gc, XFontStruct *font)
     XSetForeground(disp, gc, 0x000000);
     XDrawRectangle(disp, win, gc, plusX, plusY, plusW - 1, tabH);
 
-    // --- Centered "+" ---
+    // Centered "+"
     string plus = "+";
     XCharStruct pFullTab;
     int dir_p, ascent_p, descent_p;

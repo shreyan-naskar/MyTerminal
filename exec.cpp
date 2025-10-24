@@ -1,6 +1,5 @@
 #include "headers.cpp"
-
-// // ---------------- your original helpers (kept) ----------------
+#include "draw.cpp"
 
 // forward declarations
 struct tabState;
@@ -11,7 +10,7 @@ static mutex mwQueueMutex;
 static queue<watchMsg> mwQueue;
 
 
-// multiWatch stop requested by UI (run.cpp should set this on Ctrl+C for multiWatch)
+// multiWatch stop requested by UI 
 atomic<bool> mwStopReq(false);
 atomic<bool> mwDone(false);
 atomic<bool> cmdRunning(false);
@@ -62,12 +61,6 @@ static void handleSigintLeft()
     }
     // Leave currChildPids in place until parent reaps/waits them.
 }
-
-// =====================================================================
-//                      ORIGINAL execCommand()
-// (kept behaviorally the same; this function is used by some code paths)
-// =====================================================================
-
 vector<string> execCommand(const string &cmd)
 {
     if (cmd.empty())
@@ -94,7 +87,7 @@ vector<string> execCommand(const string &cmd)
         return {""};
     }
 
-    // ===== Split by | =====
+    // Split by |
     vector<string> getPipeParts;
     {
         stringstream ss(cmd);
@@ -312,7 +305,7 @@ vector<string> execCommand(const string &cmd)
     return output;
 }
 
-// -------- tab-aware exec: same as yours, but with per-tab CWD isolation --------
+// tab-aware exec: same as yours, but with per-tab CWD isolation
 
 static vector<string> execInDir(const string &cmd, string &cwd_for_tab)
 {
@@ -537,14 +530,9 @@ static vector<string> execInDir(const string &cmd, string &cwd_for_tab)
     return output;
 }
 
-// =====================================================================
-//                        MULTIWATCH SECTION
-// =====================================================================
-
 void sigintMultiWatch(int) { mwStopReq.store(true); }
 
-// multiWatch: line-by-line updates + runs in tab's cwd (read from tabs[])
-// Note: multiWatch is stoppable by mwStopReq (UI should set it on Ctrl+C)
+// multiWatch: line-by-line updates + runs in tab's cwd
 void multiWatchThreaded_using_pipes(const vector<string> &cmds, int tab_index, const vector<string> &oldBuffer)
 
 {
@@ -686,15 +674,10 @@ void multiWatchThreaded_using_pipes(const vector<string> &cmds, int tab_index, c
         currChildPids.clear();
     }
 
-    // === Restore previous screen ===
+    // Restore previous screen
     T.displayBuffer = oldBuffer;
-    // T.displayBuffer.push_back("^C");
 
     std::string sdisp = editPWD(T.cwd);
-    // std::string prompt = (sdisp == "/")
-    //                          ? ("swagnik@myterm:" + sdisp + "$ ")
-    //                          : ("swagnik@myterm:~" + sdisp + "$ ");
-    // T.displayBuffer.push_back(prompt);
 
     T.input.clear();
     T.currentCursorPosition = 0;

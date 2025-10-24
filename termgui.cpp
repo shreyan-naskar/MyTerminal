@@ -1,6 +1,4 @@
 #include "headers.cpp"
-
-// include files for functionality
 #include "run.cpp"
 
 using namespace std;
@@ -24,10 +22,10 @@ int main(int argc, char** argv)
     
     win = makeWindow(POSX, POSY, WIDTH, HEIGHT, BORDER);
     XStoreName(disp, win, "shreTerm");
-    // chdir("/");
     run(win);
 
     XUnmapWindow(disp, win);
     XDestroyWindow(disp, win);
+    cout<<"RUNNING"<<endl;
     return argc;
 }

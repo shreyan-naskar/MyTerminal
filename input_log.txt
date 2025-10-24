@@ -1094,3 +1094,17 @@
   1095  echo "hello 
 gu"
   1096  clear
+  1097  cd
+  1098  cd Desktop/KGP/terminal
+  1099  ls
+  1100  cd swagnik-myterm
+  1101  make
+  1102  ./main
+  1103  cd Desktop/KGP/terminal
+  1104  cd
+  1105  cd Desktop/KGP/terminal
+  1106  ./main
+  1107  ls
+  1108  cd swagnik-myterm
+  1109  ./ main
+  1110  ./main

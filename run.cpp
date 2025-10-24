@@ -1,5 +1,4 @@
 #include "headers.cpp"
-#include "draw.cpp"
 #include "exec.cpp"
 
 void run(Window win)
@@ -133,7 +132,6 @@ void run(Window win)
                 howerPlusTab = false;
 
                 int mx = event.xmotion.x;
-                // int my = event.xmotion.y;
 
                 auto tpos = makeTabs(win, gc, font); // or cache it globally
 
@@ -447,14 +445,13 @@ void run(Window win)
                     continue;
                 }
                 // Ctrl + C handling for multiWatch stop
-                // Unified Ctrl + C handling for normal commands and multiWatch
                 if ((event.xkey.state & ControlMask) && (keysym == XK_c || keysym == XK_C))
                 {
                     // Request stop from execute.cpp (async-safe)
                         getSigint();
 
                         // Give watcher thread a short timeout to finish its cleanup & restore buffer.
-                        // We poll mwDone (set by execute.cpp when multiWatch ends).
+                        // Poll mwDone (set by execute.cpp when multiWatch ends).
                         for (int i = 0; i < 10; ++i)
                         {
                             if (mwDone.load())
@@ -499,7 +496,7 @@ void run(Window win)
                             string sdisp = editPWD(T.cwd);
                             string prompt = (sdisp == "/") ? ("shre@Term:" + sdisp + "$ ") : ("shre@Term:~" + sdisp + "$ ");
 
-                            // remove the three pushed lines (list + "Choose..." + current line)
+                            // remove the three pushed lines
                             if (!T.displayBuffer.empty())
                             {
                                 T.displayBuffer.pop_back();
@@ -630,7 +627,7 @@ void run(Window win)
                                         }
                                         else
                                         {
-                                            // ✅ Copy old screen buffer safely
+                                            // Copy old screen buffer safely
                                             vector<string> oldBuffer;
                                             oldBuffer.insert(oldBuffer.end(), T.displayBuffer.begin(), T.displayBuffer.end());
 
@@ -642,7 +639,7 @@ void run(Window win)
                                             mwStopReq.store(false);
                                             mwDone.store(false);
 
-                                            // ✅ Pass oldBuffer to thread so it can restore later
+                                            // Pass oldBuffer to thread so it can restore later
                                             thread([cmds, tab_index = tabActive, oldBuffer]()
                                                    { multiWatchThreaded_using_pipes(cmds, tab_index, oldBuffer); })
                                                 .detach();
@@ -790,7 +787,7 @@ void run(Window win)
                 }
             }
         } // while XPending
-        // ===== drain multiWatch queue (main GUI thread MUST do this) =====
+        // drain multiWatch queue
         {
             std::lock_guard<std::mutex> lk(mwQueueMutex);
             while (!mwQueue.empty())
@@ -800,7 +797,7 @@ void run(Window win)
 
                 if (msg.text == "__MULTIWATCH_DONE__")
                 {
-                    // MultiWatch finished → show prompt
+                    // MultiWatch finished now show prompt
                     if (msg.tabIdx >= 0 && msg.tabIdx < (int)tabs.size())
                     {
                         tabState &T = tabs[msg.tabIdx];
@@ -845,6 +842,4 @@ void run(Window win)
     XUnmapWindow(disp, win);
     XDestroyWindow(disp, win);
     return;
-
-    // hello
 }
