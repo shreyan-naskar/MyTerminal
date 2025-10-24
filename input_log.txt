@@ -351,12 +351,12 @@
   352  git clone 
   353  cd MyTerminal/
   354  code .
-  355  echo lund
-  356  echo lund bund
-  357  echo lund \n bund
-  358  echo "lund\n gud"
-  359  echo "lund 
-  360  gud"
+  355  echo hello
+  356  echo hello bund
+  357  echo hello \n bund
+  358  echo "hello\n world"
+  359  echo "hello 
+  360  world"
   361  cd Desktop/GITHUB/MyTerminal/
   362  code .
   363  cd ..
@@ -1082,4 +1082,15 @@
  1083  ./termgui /home/shreyan10
  1084  ./termgui /home/shreyan10/Desktop/computing_lab_p1./computing_lab_p1/MyTerminal/paths.txt
  1085  git clone 
- 1086  clear
+ 1086  clear  1087  pwd
+  1087  cd
+  1088  cd Desktop/GITHUB/MyTerminal
+  1089  ls
+  1090  cat DESIGNDOC.txt
+  1091  clear
+  1092  sort < DESIGNDOC.txt
+  1093  clear
+  1094  ./termgui /home/shreyan10
+  1095  echo "hello 
+gu"
+  1096  clear
