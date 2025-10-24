@@ -1,4 +1,4 @@
-1  g++ hello.cpp
+    1  g++ hello.cpp
     2  clear
     3  g++ hello.cpp
     4  clear
@@ -186,1191 +186,900 @@
   186  make
   187  ./creatingwindow 
   188  make
-  189  ./creatingwindow 
-  190  clear
+  189  ./creatingwindow  190  gui
   191  make
-  192  ./creatingwindow 
-  193  clear
-  194  make
-  195  ./creatingwindow 
-  196  make
-  197  ./creatingwindow 
-  198  make
-  199  ./creatingwindow 
-  200  make
-  201  ./creatingwindow 
-  202  make
-  203  ./creatingwindow 
+  192  termgui
+  193  ./termgui
+  194  clear
+  195  ./termgui
+  196  gui
+  197  make
+  198  ./termgui
+  199  make
+  200  ./termgui
+  201  git add .
+  202  git commit -m "scrolling"
+  203  git push
   204  make
-  205  ./creatingwindow 
-  206  clear
-  207  make
-  208  ./creatingwindow 
-  209  ls -l
-  210  clear
+  205  ./termgui
+  206  git add .
+  207  git commit -m "scrolling done"
+  208  git push
+  209  make
+  210  ./termgui
   211  make
-  212  ./creatingwindow 
+  212  ./termgui
   213  make
-  214  ./creatingwindow 
+  214  ./termgui
   215  make
-  216  ./creatingwindow 
-  217  s
-  218  ./creatingwindow 
-  219  clear
+  216  ./termgui
+  217  git pull
+  218  git clone 
+  219  cd MyTerminal
   220  make
-  221  ./creatingwindow 
-  222  clear
-  223  make
-  224  ./creatingwindow 
-  225  make
-  226  ./creatingwindow 
-  227  make
-  228  ./creatingwindow 
-  229  make
-  230  ./creatingwindow 
+  221  ./termgui
+  222  cd ..
+  223  rm MyTerminal2
+  224  make
+  225  ls
+  226  ls -l
+  227  echo hello
+  228  pwd
+  229  cls
+  230  ./termgui
   231  make
-  232  ./creatingwindow 
+  232  ./termgui
   233  make
-  234  ./creatingwindow 
+  234  ./termgui
   235  make
-  236  ./creatingwindow 
+  236  ./termgui
   237  make
-  238  ./creatingwindow 
+  238  ./termgui
   239  make
-  240  clear
+  240  ./termgui
   241  make
-  242  ./creatingwindow 
+  242  ./termgui
   243  make
-  244  ./creatingwindow 
+  244  ./termgui
   245  make
-  246  ./creatingwindow 
+  246  ./termgui
   247  make
-  248  ./creatingwindow 
+  248  ./termgui
   249  make
-  250  ./creatingwindow 
+  250  ./termgui
   251  make
-  252  ./creatingwindow 
-  253  clear
-  254  make
-  255  ./creatingwindow 
-  256  make
-  257  ./creatingwindow 
-  258  make
-  259  ./creatingwindow 
-  260  make
-  261  ./creatingwindow 
-  262  make
+  252  ./termgui
+  253  make
+  254  ./termgui
+  255  make
+  256  ./termgui
+  257  make
+  258  ./termgui
+  259  make
+  260  ./termgui
+  261  make
+  262  ./termgui
   263  make
-  264  ./creatingwindow 
+  264  ./termgui
   265  make
-  266  ./creatingwindow 
-  267  make
-  268  ./creatingwindow 
-  269  make
-  270  ./creatingwindow 
-  271  make
-  272  ./creatingwindow 
-  273  clear
+  266  ./termgui
+  267  clear
+  268  make
+  269  clear
+  270  ./termgui
+  271  git add .
+  272  git commit -m "working cd"
+  273  git push
   274  make
-  275  ./creatingwindow 
+  275  ./termgui
   276  make
-  277  ./creatingwindow 
+  277  ./termgui
   278  make
-  279  ./creatingwindow 
+  279  ./termgui
   280  make
-  281  ./creatingwindow 
+  281  ./termgui
   282  make
-  283  ./creatingwindow 
+  283  ./termgui
   284  make
-  285  ./creatingwindow 
+  285  ./termgui
   286  make
-  287  ./creatingwindow 
+  287  ./termgui
   288  make
-  289  ./creatingwindow 
+  289  ./termgui
   290  make
-  291  clear
+  291  ./termgui
   292  make
-  293  clear
-  294  make
-  295  clear
-  296  make
-  297  clear
-  298  make
-  299  ././creatingwindow 
+  293  ./termgui
+  294  git add .
+  295  git commit -m "Multiline echo working"
+  296  git push
+  297  make
+  298  clear
+  299  ./termgui
   300  make
-  301  ././creatingwindow 
-  302  ./creatingwindow 
-  303  clear
-  304  make
-  305  ./creatingwindow 
+  301  ./termgui
+  302  clear
+  303  make
+  304  ./termgui
+  305  clear
   306  make
-  307  ./creatingwindow 
+  307  ./termgui
   308  make
-  309  ./creatingwindow 
+  309  ./termgui
   310  make
-  311  ./creatingwindow 
+  311  ./termgui
   312  make
-  313  ./creatingwindow 
-  314  clear
-  315  ./creatingwindow 
-  316  sudo apt install onboard   # Ubuntu/Debian
-  317  onboard
+  313  ./termgui
+  314  make
+  315  ./termgui
+  316  make
+  317  ./termgui
   318  make
-  319  ./creatingwindow 
+  319  ./termgui
   320  make
-  321  ./creatingwindow 
-  322  clear
-  323  make
-  324  ./creatingwindow 
-  325  make
-  326  ./creatingwindow 
-  327  make
-  328  ./creatingwindow 
-  329  make
-  330  ./creatingwindow 
-  331  make
-  332  ./creatingwindow 
-  333  make
-  334  ./creatingwindow 
-  335  make
-  336  ./creatingwindow 
-  337  make
-  338  ./creatingwindow 
-  339  make
-  340  ./creatingwindow 
-  341  clear
-  342  echo "हिन्दी में टाइप करें "
-  343  echo "gud
-  344  bal"
-  345  make
-  346  ./creatingwindow 
-  347  make
-  348  ./creatingwindow 
-  349  make
-  350  ./creatingwindow 
-  351  make
-  352  ./creatingwindow 
-  353  make
-  354  ./creatingwindow 
-  355  make
-  356  ./creatingwindow 
-  357  make
-  358  ./creatingwindow 
-  359  clear
-  360  make
-  361  ./creatingwindow 
-  362  make
-  363  ./creatingwindow 
-  364  clear
-  365  make
-  366  ./creatingwindow 
-  367  make
-  368  ./creatingwindow 
-  369  make
-  370  ./creatingwindow 
-  371  clear
-  372  make
-  373  ./creatingwindow 
-  374  make
-  375  clear
-  376  make
-  377  ./creatingwindow 
-  378  make
-  379  ./creatingwindow 
-  380  make
-  381  ./creatingwindow 
+  321  ./termgui
+  322  make
+  323  ./termgui
+  324  make
+  325  ./termgui
+  326  make
+  327  ./termgui
+  328  make
+  329  ./termgui
+  330  make
+  331  ./termgui
+  332  make
+  333  ./termgui
+  334  make
+  335  ./termgui
+  336  make
+  337  ./termgui
+  338  make
+  339  ./termgui
+  340  make
+  341  ./termgui
+  342  make
+  343  ./termgui
+  344  make
+  345  ./termgui
+  346  make
+  347  ./termgui
+  348  git add .
+  349  git commit -m ""up, down arrow working"
+  350  git commit -m "up, down arrow working"
+  351  git push
+  352  git clone 
+  353  cd MyTerminal/
+  354  code .
+  355  echo lund
+  356  echo lund bund
+  357  echo lund \n bund
+  358  echo "lund\n gud"
+  359  echo "lund 
+  360  gud"
+  361  cd Desktop/GITHUB/MyTerminal/
+  362  code .
+  363  cd ..
+  364  cd MyTerminal/
+  365  clear
+  366  make
+  367  ./termgui 
+  368  code
+  369  git clone 
+  370  ls
+  371  cd Desktop/GITHUB/MyTerminal/
+  372  ls
+  373  ./termgui
+  374  code
+  375  cd Desktop/
+  376  cd /
+  377  make
+  378  ./termgui 
+  379  make
+  380  ./termgui 
+  381  clear
   382  make
-  383  ./creatingwindow 
+  383  ./termgui 
   384  make
-  385  ./creatingwindow 
-  386  clear
-  387  make
-  388  ./creatingwindow 
-  389  make
-  390  ./creatingwindow 
-  391  make
-  392  ./creatingwindow 
-  393  make
-  394  ./creatingwindow 
-  395  clear
-  396  ./creatingwindow 
-  397  make
-  398  ./creatingwindow 
-  399  clear
-  400  make
-  401  ./creatingwindow 
-  402  clear
-  403  ./creatingwindow 
-  404  make
-  405  ./creatingwindow 
-  406  make
-  407  ./creatingwindow 
-  408  make
-  409  ./creatingwindow 
-  410  make
-  411  ./creatingwindow 
-  412  make
-  413  ./creatingwindow 
+  385  ./termgui 
+  386  make
+  387  ./termgui 
+  388  git add .
+  389  git commin -m "up, down fixed & clear working"
+  390  git commit -m "up, down fixed & clear working"
+  391  git psuh origin main
+  392  git push origin main
+  393  clear
+  394  make
+  395  ./termgui 
+  396  make
+  397  ./termgui 
+  398  make
+  399  ./termgui 
+  400  cd Desktop/GITHUB/MyTerminal/
+  401  code 
+  402  git status
+  403  make
+  404  clear
+  405  make
+  406  ./termgui 
+  407  make
+  408  ./gtperm
+  409  ./gptperm
+  410  ./gptTerm
+  411  git clone ~
+  412  got clone 
+  413  git clone 
   414  make
-  415  ./creatingwindow 
-  416  make
-  417  ./creatingwindow 
+  415  ./termgui 
+  416  clear
+  417  ./termgui 
   418  make
-  419  ./creatingwindow 
-  420  clear
-  421  ./creatingwindow 
-  422  gcc demo.cpp
-  423  ./a.out
-  424  gcc demo.cpp
-  425  ./a.out
-  426  clear
-  427  gcc demo.cpp
-  428  clear
-  429  g++ demo.cpp
-  430  ./a.out
-  431  clear
-  432  g++ demo.cpp
-  433  ./a.out
-  434  g++ demo.cpp
-  435  ./a.out
-  436  g++ demo.cpp
-  437  ./a.out
-  438  g++ 25CS60R67_Q1.cpp
-  439  ./a.out
-  440  clear
-  441  g++ 25CS60R67_q2.cpp
-  442  g++ 25CS60R67_Q2.cpp
-  443  clear
-  444  g++ 25CS60R67_Q2.cpp
-  445  ./a.out
-  446  clear
-  447  g++ 25CS60R67_Q2.cpp
-  448  clear
-  449  g++ 25CS60R67_Q2.cpp
-  450  clear
-  451  g++ 25CS60R67_Q2.cpp
-  452  clear
-  453  g++ 25CS60R67_Q2.cpp
-  454  ./a.out
-  455  g++ 25CS60R67_Q2.cpp
-  456  ./a.out
-  457  clear
-  458  g++ 25CS60R67_Q2.cpp
-  459  ./a.out
-  460  clear
-  461  g++ 25CS60R67_Q2.cpp
-  462  clear
-  463  g++ 25CS60R67_Q2.cpp
-  464  clear
-  465  g++ 25CS60R67_Q2.cpp
+  419  ./termgui 
+  420  make
+  421  clear
+  422  make
+  423  ./termgui 
+  424  make
+  425  ./termgui 
+  426  make
+  427  ./termgui 
+  428  make
+  429  ./termgui 
+  430  make
+  431  ./termgui 
+  432  ./termgui 
+  433  make
+  434  ./termgui 
+  435  make
+  436  ./termgui 
+  437  make
+  438  ./termgui 
+  439  make
+  440  ./termgui 
+  441  make
+  442  ./termgui 
+  443  make
+  444  ./termgui 
+  445  code
+  446  code
+  447  sudo apt update
+  448  sudo apt install libpango1.0-dev libcairo2-dev libx11-dev pkg-config
+  449  sudo apt install fonts-noto-core fonts-noto-ui-core fonts-noto-cjk fonts-noto-devanagari
+  450  sudo apt install noto-sans
+  451  sudo apt-get install fonts-noto-core   
+  452  sudo apt autoremove
+  453  clear
+  454  make
+  455  ./termgui 
+  456  make
+  457  ./termgui 
+  458  make
+  459  clear
+  460  make
+  461  clear
+  462  make
+  463  clear
+  464  make
+  465  ./termgui 
   466  clear
-  467  g++ 25CS60R67_Q2.cpp
-  468  clear
-  469  g++ 25CS60R67_Q2.cpp
-  470  ./a.out
-  471  g++ 25CS60R67_Q2.cpp
-  472  ./a.out
-  473  g++ 25CS60R67_Q2.cpp
-  474  ./a.out
-  475  clear
-  476  g++ 25CS60R67_Q2.cpp
-  477  ./a.out
-  478  [200~#include <X11/Xlib.h>
-  479  #include <X11/keysym.h>
-  480  #include <X11/Xutil.h>
-  481  #include <cstdio>
-  482  #include <err.h>
-  483  #include <string>
-  484  #include <iostream>
-  485  #include <chrono>
-  486  #include <vector>
-  487  #include <bits/stdc++.h>
-  488  #include <unistd.h>
-  489  #include <cctype>
-  490  #include <regex>
-  491  #include <sys/types.h>
-  492  #include <sys/wait.h>
-  493  #include <sstream>
-  494  #include <fstream>
-  495  #include <fcntl.h>
-  496  #include <locale.h>~
-  497  clear
-  498  #include <X11/Xlib.h>
-  499  #include <X11/keysym.h>
-  500  #include <X11/Xutil.h>
-  501  #include <cstdio>
-  502  #include <err.h>
-  503  #include <string>
-  504  #include <iostream>
-  505  #include <chrono>
-  506  #include <vector>
-  507  #include <bits/stdc++.h>
-  508  #include <unistd.h>
-  509  #include <cctype>
-  510  #include <regex>
-  511  #include <sys/types.h>
-  512  #include <sys/wait.h>
-  513  #include <sstream>
-  514  #include <fstream>
-  515  #include <fcntl.h>
-  516  #include <locale.h>
-  517  khanki
-  518  wc -l
-  519  clear
-  520  ls
-  521  abc.txt | wc -l
-  522  [200~sudo apt install fonts-ubuntu
-  523  ~sudo apt install fonts-ubuntu
-  524  sudo apt install fonts-ubuntu
+  467  make
+  468  ./termgui 
+  469  sudo apt install libpango1.0-dev libcairo2-dev
+  470  code
+  471  sudo apt install libpango1.0-dev libcairo2-dev   
+  472  sudo apt-get update -y 
+  473  sudo apt-get install -y libpango-1.0-0 
+  474  pkg-config --cflags pangocairo
+  475  make
+  476  ./termgui 
+  477  make
+  478  ./termgui 
+  479  make
+  480  ./termgui 
+  481  make
+  482  ./termgui 
+  483  make
+  484  ./termgui 
+  485  make
+  486  ./termgui 
+  487  make
+  488  ./termgui 
+  489  make
+  490  ./termgui 
+  491  make
+  492  ./termgui 
+  493  make
+  494  ./termgui 
+  495  make
+  496  ./termgui 
+  497  make
+  498  ./termgui 
+  499  clear
+  500  make
+  501  clear
+  502  make
+  503  ./termgui 
+  504  make
+  505  ./termgui 
+  506  clear
+  507  ./termgui 
+  508  make
+  509  ./termgui 
+  510  make
+  511  ./termgui 
+  512  make
+  513  ./termgui 
+  514  make
+  515  make
+  516  ./termgui 
+  517  make
+  518  ./termgui 
+  519  make
+  520  ./termgui 
+  521  make
+  522  ./termgui 
+  523  make
+  524  ./termgui 
   525  make
-  526  ./creatingwindow 
+  526  ./termgui 
   527  make
-  528  ./creatingwindow 
+  528  ./termgui 
   529  make
-  530  ./creatingwindow 
-  531  make
-  532  ./creatingwindow 
-  533  make
-  534  clear
-  535  ./creatingwindow 
-  536  make
-  537  ./creatingwindow 
-  538  make
-  539  ./creatingwindow 
-  540  make
-  541  ./creatingwindow 
+  530  ./termgui 
+  531  cd ..
+  532  cd MyTerminal/
+  533  code 
+  534  code .
+  535  cd Desktop/GITHUB/
+  536  git clone
+  537  cd myterminal/
+  538  code .
+  539  cd ..
+  540  cd MyTerminal/
+  541  code .
   542  make
-  543  ./creatingwindow 
+  543  ./termgui 
   544  make
-  545  ./creatingwindow 
-  546  clear
-  547  make
-  548  ./creatingwindow 
-  549  make
-  550  ./creatingwindow 
-  551  make
-  552  ./creatingwindow 
-  553  make
-  554  ./creatingwindow 
-  555  make
-  556  ./creatingwindow 
-  557  make
-  558  ./creatingwindow 
+  545  ./termgui 
+  546  make
+  547  ./termgui 
+  548  make
+  549  ./termgui 
+  550  make
+  551  ./termgui 
+  552  make
+  553  ./termgui 
+  554  make
+  555  ./termgui 
+  556  clear
+  557  ./termgui 
+  558  clear
   559  make
-  560  ./creatingwindow 
+  560  ./termgui 
   561  make
-  562  ./creatingwindow 
+  562  ./termgui 
   563  make
-  564  ./creatingwindow 
+  564  ./termgui 
   565  make
-  566  ./creatingwindow 
-  567  clear
-  568  make
-  569  clear
-  570  ./creatingwindow
-  571  echo "hello
-  572  gud"
-  573  clear
-  574  make
-  575  ./creatingwindow
-  576  make
-  577  ./creatingwindow
+  566  ./termgui 
+  567  make
+  568  ./termgui 
+  569  make
+  570  ./termgui 
+  571  make
+  572  ./termgui 
+  573  make
+  574  ./termgui 
+  575  make
+  576  ./termgui 
+  577  clear
   578  make
-  579  ./creatingwindow
+  579  ./termgui 
   580  make
-  581  ./creatingwindow
+  581  ./termgui 
   582  make
-  583  ./creatingwindow
+  583  ./termgui 
   584  make
-  585  ./creatingwindow
+  585  ./termgui 
   586  make
-  587  ./creatingwindow
+  587  ./termgui 
   588  make
-  589  ./creatingwindow
-  590  make
-  591  ./creatingwindow
-  592  make
-  593  ./creatingwindow
-  594  make
-  595  ./creatingwindow
-  596  make
-  597  ./creatingwindow
-  598  make
-  599  ./creatingwindow
-  600  make
-  601  ./creatingwindow
-  602  make
-  603  ./creatingwindow
-  604  make
+  589  ./termgui 
+  590  clear
+  591  make
+  592  ./termgui 
+  593  make
+  594  ./termgui 
+  595  make
+  596  ./termgui 
+  597  make
+  598  ./termgui 
+  599  make
+  600  ./termgui 
+  601  make
+  602  ./termgui 
+  603  make
+  604  ./termgui 
   605  make
-  606  ./creatingwindow 
+  606  ./termgui 
   607  make
-  608  ./creatingwindow 
+  608  ./termgui 
   609  make
-  610  ./creatingwindow 
+  610  ./termgui 
   611  make
-  612  ./creatingwindow 
-  613  make
-  614  ./creatingwindow 
-  615  make
-  616  ./creatingwindow 
-  617  make
-  618  ./creatingwindow 
-  619  make
-  620  ./creatingwindow 
-  621  make
-  622  ./creatingwindow 
-  623  fc-list | grep Mono
-  624  sudo apt install libxft-dev
-  625  cd Templates
-  626  cat hello.c | sort | more
-  627  ls *.txt | wc -l
-  628  s *.txt | xargs rm 
-  629  ls *.txt | xargs rm 
-  630  ls
-  631  gedit hello.txt
-  632  ls *.txt | xargs rm 
-  633  ls
-  634  gedit hello.txt
-  635  ls *.txt | xargs rm 
-  636  ls
-  637  gedit hello.txt
-  638  ls *.txt | wc -l
-  639  ls *.txt | wc
-  640  ls *.txt | wc -ls
-  641  ls *.txt | wc 
-  642  ls *.txt | wc -l
-  643  cat hello.c | sort | more
-  644  clear
-  645  make
-  646  ./creatingwindow 
-  647  make
-  648  ./creatingwindow 
-  649  make
-  650  ./creatingwindow 
-  651  clear
+  612  ./termgui 
+  613  watch date
+  614  ./multiWatch "bash -c 'for i in {1..5}; do echo hello1; sleep 1; done'"              "bash -c 'for i in {1..3}; do echo foo; sleep 2; done'"              "bash -c 'echo immediate; sleep 4; echo later'"
+  615  ./demo "bash -c 'for i in {1..5}; do echo hello1; sleep 1; done'"              "bash -c 'for i in {1..3}; do echo foo; sleep 2; done'"              "bash -c 'echo immediate; sleep 4; echo later'"
+  616  g++ demo.cpp
+  617  ./demo "bash -c 'for i in {1..5}; do echo hello1; sleep 1; done'"              "bash -c 'for i in {1..3}; do echo foo; sleep 2; done'"              "bash -c 'echo immediate; sleep 4; echo later'"
+  618  ./a.out "bash -c 'for i in {1..5}; do echo hello1; sleep 1; done'"              "bash -c 'for i in {1..3}; do echo foo; sleep 2; done'"              "bash -c 'echo immediate; sleep 4; echo later'"
+  619  clear
+  620  make
+  621  clear
+  622  ./termgui 
+  623  make
+  624  ./termgui 
+  625  make
+  626  ./termgui 
+  627  make
+  628  ./termgui 
+  629  clear
+  630  make
+  631  ./termgui 
+  632  make
+  633  ./termgui 
+  634  make
+  635  ./termgui 
+  636  make
+  637  ./termgui 
+  638  make
+  639  ./termgui 
+  640  make
+  641  ./termgui 
+  642  make
+  643  ./termgui 
+  644  make
+  645  ./termgui 
+  646  make
+  647  ./termgui 
+  648  make
+  649  ./termgui 
+  650  make
+  651  ./termgui 
   652  make
-  653  ./creatingwindow 
+  653  ./termgui 
   654  make
-  655  ./creatingwindow 
-  656  sudo apt install git
-  657  clear
-  658  git --version
-  659  cd ..
-  660  clear
-  661  cd
-  662  pw
-  663  pwd
-  664  sudo apt install git
-  665  sudo apt update
-  666  cd Templates
-  667  make
-  668  ./creatingwindow 
-  669  cd myterminal
-  670  clear
-  671  make
-  672  ./creatingwindow 
-  673  make
-  674  ./creatingwindow 
-  675  g++ a.cpp
-  676  ./creatingwindow 
-  677  make
-  678  ./creatingwindow 
-  679  make
-  680  ./creatingwindow 
-  681  sudo apt install git
-  682  ps -ef | grep 8121
-  683  sudo kill -9 8121
-  684  sudo apt install git
-  685  sudo apt update
-  686  sudo kill -9 11446
-  687  sudo apt install git
-  688  git --version
-  689  clear
-  690  git config --global user.name "Swagnikghosh"
-  691  git config --global user.email "swagnikghosh705@gmail.com"
-  692  git config --list
-  693  cd Templates
-  694  git clone "https://github.com/Swagnikghosh/myterminal.git"
-  695  cd myterminal
-  696  touch a.c
-  697  git add .
-  698  git commit -m "first commit"
-  699  git push origin main
-  700  echo "gud bal"
-  701  git push origin main
-  702  ls
-  703  cd ..
-  704  ls
-  705  cd myterminal
-  706  ls
-  707  clear
-  708  ls
-  709  git add .
-  710  cd ..
-  711  code .
-  712  cd myterminal
-  713  code .
-  714  make
-  715  ././creatingwindow 
-  716  make
-  717  clear
-  718  ././creatingwindow 
+  655  ./termgui 
+  656  make
+  657  ./termgui 
+  658  make
+  659  ./termgui 
+  660  make
+  661  make
+  662  ./termgui 
+  663  clear
+  664  make
+  665  ./termgui 
+  666  make
+  667  ./termgui 
+  668  make
+  669  ./termgui 
+  670  make
+  671  ./termgui 
+  672  make
+  673  ./termgui 
+  674  make
+  675  ./termgui 
+  676  make
+  677  ./termgui 
+  678  make
+  679  ./termgui 
+  680  make
+  681  ./termgui 
+  682  make
+  683  ./termgui 
+  684  make
+  685  ./termgui 
+  686  make
+  687  ./termgui 
+  688  make
+  689  ./termgui 
+  690  make
+  691  ./termgui 
+  692  clear
+  693  make
+  694  ./termgui 
+  695  make
+  696  ./termgui 
+  697  make
+  698  ./termgui 
+  699  make
+  700  ./termgui 
+  701  make
+  702  ./termgui 
+  703  make
+  704  ./termgui 
+  705  make
+  706  ./termgui 
+  707  make
+  708  ./termgui 
+  709  make
+  710  ./termgui 
+  711  make
+  712  ./termgui 
+  713  make
+  714  ./termgui 
+  715  make
+  716  ./termgui 
+  717  make
+  718  ./termgui 
   719  make
-  720  ././creatingwindow 
+  720  ./termgui 
   721  make
-  722  ././creatingwindow 
+  722  ./termgui 
   723  make
-  724  ././creatingwindow 
+  724  ./termgui 
   725  make
-  726  clear
+  726  ./termgui 
   727  make
-  728  ././creatingwindow 
+  728  ./termgui 
   729  make
-  730  ././creatingwindow 
+  730  ./termgui 
   731  make
-  732  ././creatingwindow 
+  732  ./termgui 
   733  make
-  734  ././creatingwindow 
+  734  ./termgui 
   735  make
-  736  ././creatingwindow 
+  736  ./termgui 
   737  make
-  738  ././creatingwindow 
+  738  ./termgui 
   739  make
-  740  ././creatingwindow 
+  740  ./termgui 
   741  make
-  742  ././creatingwindow 
-  743  clear
-  744  make
-  745  ././creatingwindow 
-  746  make
-  747  ././creatingwindow 
-  748  make
-  749  ././creatingwindow 
-  750  make
-  751  ././creatingwindow 
-  752  make
-  753  ././creatingwindow 
-  754  make
-  755  ././creatingwindow 
-  756  make
-  757  ././creatingwindow 
-  758  make
-  759  ././creatingwindow 
-  760  make
-  761  ././creatingwindow 
-  762  make
-  763  ././creatingwindow 
-  764  make
-  765  ././creatingwindow 
-  766  make
-  767  ././creatingwindow 
-  768  make
-  769  ././creatingwindow 
-  770  clear
-  771  make
-  772  ././creatingwindow 
-  773  make
-  774  ././creatingwindow 
-  775  make
-  776  ././creatingwindow 
-  777  make
-  778  ././creatingwindow 
-  779  make
-  780  ././creatingwindow 
-  781  clear
-  782  make
-  783  ././creatingwindow 
-  784  make
-  785  ././creatingwindow 
-  786  make
-  787  ././creatingwindow 
-  788  make
-  789  ././creatingwindow 
-  790  echo "gud
-  791  bal"d
-  792  cd Templates
-  793  cd myterminal
-  794  grep "gud" input_log.txt
-  795  grep "gu" input_log.txt
-  796  grep "ls" input_log.txt
-  797  grep "gu" input_log.txt
-  798  grep gu input_log.txt
-  799  grep xyz input_log.txt
-  800  "ls"
-  801  grep xyz input_log.txt
-  802  grep hell input_log.txt
-  803  grep '^prefix' hell input_log.txt
-  804  grep ^hell input_log.txt
-  805  grep '^hell' input_log.txt
-  806  grep '^hello' input_log.txt
-  807  grep '^"hello' input_log.txt
-  808  grep '^"hell' input_log.txt
-  809  clear
-  810  echo "gud
-  811  bal"
-  812  echo "gud
-  813  bal"
-  814  echo "gud
-  815  cal"
-  816  hstory
-  817  history
-  818  cd clear
+  742  ./termgui 
+  743  make
+  744  ./termgui 
+  745  make
+  746  ./termgui 
+  747  make
+  748  ./termgui 
+  749  make
+  750  ./termgui 
+  751  make
+  752  clear
+  753  make
+  754  ./termgui
+  755  make
+  756  ./termgui
+  757  make
+  758  ./termgui
+  759  make
+  760  ./termgui
+  761  make
+  762  ./termgui
+  763  cat
+  764  ls
+  765  cat
+  766  cat grbgdgb>abc.txt
+  767  cd /
+  768  cd
+  769  ./home/shreyan/Desktop/GITHUB/MTerminal/termgui
+  770  cd Desktop/GITHUB
+  771  git clone 
+  772  cd ..
+  773  git clone 
+  774  cd M
+  775  git add .
+  776  cd GITHUB/MyTerminal/
+  777  git status
+  778  git remote set-url origin 
+  779  cd..
+  780  cd ..
+  781  git clone 
+  782  clear
+  783  make
+  784  ./termgui
+  785  ./ termgui
+  786  termgui
+  787  ./ termgui
+  788  ./termgui
+  789  make
+  790  ./termgui
+  791  make
+  792  clear
+  793  make
+  794  ./termgui
+  795  make
+  796  ./termgui
+  797  make
+  798  ./termgui
+  799  make
+  800  ./termgui
+  801  make
+  802  ./termgui
+  803  make
+  804  ./termgui
+  805  clear
+  806  make
+  807  ./termgui
+  808  make
+  809  ./termgui
+  810  clear
+  811  make
+  812  ./termgui
+  813  make
+  814  ./termgui
+  815  clear
+  816  make
+  817  ./termgui
+  818  make
   819  clear
-  820  cd Templates
-  821  cs myterminal
-  822  cd myterminal
-  823  cat history > input_log.txt
-  824  cat history
-  825  cd ..
-  826  cat history
-  827  cd Templates
-  828  cd myterminal
-  829  history > input_log.txt
-  830  history
-  831  grep rendi history
-  832  history
-  833  clear
-  834  grep echo history
-  835  grep "rendi" ~/.bash_history
-  836  grep "gud" ~/.bash_history
-  837  clear
-  838  cd Templates
-  839  cd myterminal
-  840  history > input_log.txt
-  841  clear
-  842  ls
-  843  clear
-  844  echo "gud
-  845  clear
-"
+  820  make
+  821  ./termgui
+  822  code .
+  823  g++ 25CS60R67_Q2.cpp
+  824  ./a.out
+  825  code .
+  826  cd 25CS60R41_A08/
+  827  g++ 25CS60R41_A08_Q1.cpp -o a
+  828  ./a
+  829  clear
+  830  ./a
+  831  clear
+  832  g++ 25CS60R41_A08_Q2.cpp -o b
+  833  ./b
+  834  g++ 25CS60R41_A08_Q2.cpp -o b
+  835  ./b
+  836  g++ 25CS60R41_A08_Q2.cpp -o b
+  837  ./b
+  838  g++ 25CS60R41_A08_Q2.cpp -o b
+  839  ./b
+  840  g++ 25CS60R41_A08_Q2.cpp -o b
+  841  ./b
+  842  g++ 25CS60R41_A08_Q2.cpp -o b
+  843  ./b
+  844  g++ 25CS60R41_A08_Q2.cpp -o b
+  845  ./b
   846  clear
-  847  clear
-"
-  848  clear
-  849  echo "gud
-d"
-  850  clear
-  851  echo "gud 
-  852  echo "gud
-d"
-  853  clear
-  854  ls
-"
-  855  ls
-  856  clear
-  857  echo "gud
-  858  echo "gud
-dd"
-  859  echo "gud
-lll"
-  860  echo "gud
-lll"
-"
-  861  clear
-  862  echo "gud
-lll"
-"
-
-"
-  863  ls
-"
-  864  clear
-  865  ls
-  866  clear
-  867  ls
-  868  clear
-  869  ls
-  870  clear
-  871  ls
-  872  clear
-  873  cd Desktop/GITHUB/MyTerminal
-    874  cd
-  875  echo gud
-  876  cd
-  877  cd Desktop/GITHUB/MyTerminal
-  878  python3 a.py
-  879  cd
-  880  cd Desktop/GITHUB/MyTerminal
-  881  python3 a.py
-  882  clear
-  883  cd
-  884  cd Desktop/GITHUB/MyTerminal
-  885  python3 a.py
-  886  cd
-  887  cd Desktop/GITHUB/MyTerminal
-  888  python3 a.py
-  889  cd
-  890  cd Desktop/GITHUB/MyTerminal
-  891  cd
-  892  cd Desktop/GITHUB/MyTerminal
-  893  python3 a.py
-  894  cd
-  895  cd Desktop/GITHUB/MyTerminal
-  896  python3 a.py
-  897  cd
-  898  cd Desktop/GITHUB/MyTerminal
-  899  python3 a.py
-  900  clear
-  901  echo "gud
-bal"
-  902  cd
-  903  cd Desktop/GITHUB/MyTerminal
-  904  ls
-  905  cd
-  906  cd Desktop/GITHUB/MyTerminal
-  907  cd
-  908  cd Desktop/GITHUB/MyTerminal
-  909  ls
-  910  cd
-  911  cd Desktop/GITHUB/MyTerminal
-  912  cd
-  913  cd Desktop/GITHUB/MyTerminal
-  914  cd
-  915  cd Desktop/GITHUB/MyTerminal
-  916  cd
-  917  cd Desktop/GITHUB/MyTerminal
-  918  cd
-  919  cd Desktop/GITHUB/MyTerminal
-  920  cd
-  921  cd Desktop/GITHUB/MyTerminal
-  922  cd
-  923  cd Desktop/GITHUB/MyTerminal
-  924  cd
-  925  cd Desktop/GITHUB/MyTerminal
-  926  cd
-  927  cd Desktop/GITHUB/MyTerminal
-  928  cd
-  929  cd Desktop/GITHUB/MyTerminal
-  930  ls
-  931  cat draw.cpp
-  932  clear
-  933  cat draw.cpp
-  934  cd
-  935  cd Desktop/GITHUB/MyTerminal
-  936  cd
-  937  cd Desktop/GITHUB/MyTerminal
-  938  cat draw.cpp
-  939  clear
-  940  cd
-  941  cd Desktop/GITHUB/MyTerminal
-  942  cat draw.cpp
-  943  cd
-  944  cd Desktop/GITHUB/MyTerminal
-  945  cd
-  946  cd Desktop/GITHUB/MyTerminal
-  947  ls
-  948  cd
-  949  cd Desktop/GITHUB/MyTerminal
-  950  cd
-  951  cd Desktop/GITHUB/MyTerminal
-  952  cd
-  953  cd Desktop/GITHUB/MyTerminal
-  954  cd
-  955  cd Desktop/GITHUB/MyTerminal
-  956  draw.cpp
-  957  cat draw.cpp
-  958  cd
-  959  cd Desktop/GITHUB/MyTerminal
-  960  clear
-  961  cd
-  962  cd Desktop/GITHUB/MyTerminal
-  963  clear
-  964  echo "gud"
-  965  cat draw.cpp
-  966  clear
-  967  cd
-  968  cd Desktop/GITHUB/MyTerminal
+  847  g++ 25CS60R41_A08_Q3.cpp
+  848  ./a.out
+  849  g++ 25CS60R41_A08_Q3.cpp
+  850  ./a.out
+  851  clear
+  852  g++ 25CS60R41_A08_Q3.cpp
+  853  ./a.out
+  854  clear
+  855  g++ 25CS60R41_A08_Q3.cpp
+  856  ./a.out
+  857  g++ 25CS60R41_A08_Q3.cpp
+  858  ./a.out
+  859  g++ 25CS60R41_A08_Q3.cpp
+  860  ./a.out
+  861  g++ 25CS60R41_A08_Q3.cpp
+  862  ./a.out
+  863  g++ 25CS60R41_A08_Q3.cpp
+  864  ./a.out
+  865  g++ 25CS60R41_A08_Q3.cpp
+  866  ./a.out
+  867  g++ 25CS60R41_A08_Q3.cpp
+  868  ./a.out
+  869  g++ 25CS60R41_A08_Q3.cpp
+  870  ./a.out
+  871  g++ 25CS60R41_A08_Q3.cpp
+  872  ./a.out
+  873  g++ 25CS60R41_A08_Q3.cpp
+  874  ./a.out
+  875  g++ 25CS60R41_A08_Q3.cpp
+  876  ./a.out
+  877  g++ 25CS60R41_A08_Q2.cpp -o b
+  878  ls
+  879  cd 25CS60R41_A08/
+  880  g++ 25CS60R41_A08_Q2.cpp -o b
+  881  ./b
+  882  g++ 25CS60R41_A08_Q2.cpp -o b
+  883  ./b
+  884  g++ 25CS60R41_A08_Q2.cpp -o b
+  885  ./b
+  886  g++ 25CS60R41_A08_Q3.cpp
+  887  ./a.out
+  888  g++ 25CS60R41_A08_Q3.cpp
+  889  ./a.out
+  890  g++ 25CS60R41_A08_Q3.cpp
+  891  ./a.out
+  892  clear
+  893  g++ 25CS60R41_A08_Q3.cpp
+  894  ./a.out
+  895  g++ 25CS60R41_A08_Q3.cpp
+  896  ./a.out
+  897  g++ 25CS60R41_A08_Q3.cpp
+  898  ./a.out
+  899  g++ 25CS60R41_A08_Q3.cpp
+  900  ./a.out
+  901  g++ 25CS60R41_A08_Q3.cpp
+  902  ./a.out
+  903  g++ 25CS60R41_A08_Q3.cpp
+  904  ./a.out
+  905  g++ 25CS60R41_A08_Q3.cpp
+  906  ./a.out
+  907  code .
+  908  make
+  909  ./all
+  910  make
+  911  make clean
+  912  make
+  913  make clean
+  914  make
+  915  ./multitab
+  916  make clean
+  917  make
+  918  ./multitab
+  919  g++ multiTab.cpp -o multitab -lX11
+  920  make clean
+  921  make
+  922  ./multiTabg
+  923  g++ multiTab.cpp -o multiTab -lX11
+  924  make clean
+  925  make
+  926  ./multTab 
+  927  git reset --hard HEAD~1
+  928  code .
+  929  git status
+  930  git clone 
+  931  git pull
+  932  make
+  933  ./termgui
+  934  git reset --hard HEAD~1
+  935  git push --force
+  936  git clone 
+  937  make
+  938  ./termgui 
+  939  git status
+  940  code .
+  941  g++ try.cpp 
+  942  clear
+  943  g++ -std=c++17 try.cpp -o all_with_tabs -lX11
+  944  ./all_with_tabs 
+  945  g++ -std=c++17 multitab_x11_term.cpp -o multitab_x11_term -lX11 -lutil -pthread
+  946  g++ -std=c++17 try.cpp -o try -lX11 -lutil -pthread
+  947  ./try4
+  948  ./try
+  949  make
+  950  ./multTab 
+  951  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+  952  ./all
+  953  make
+  954  clear
+  955  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  956  ./multitab 
+  957  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  958  LANG=hi_IN.UTF-8 ./multitab
+  959  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread LANG=hi_IN.UTF-8 ./multitab
+  960  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread LANG=hi_IN.UTF-8 
+  961  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  962  LANG=hi_IN.UTF-8 ./multitab
+  963  ./multitab 
+  964  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  965  ./multitab 
+  966  gdb ./multitab
+  967  g++ -std=c++17 wihunial.cpp -o multitab -lX11 -pthread
+  968  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
   969  clear
-  970  cd
-  971  cd Desktop/GITHUB/MyTerminal
-  972  clear
-  973  cd
-  974  cd Desktop/GITHUB/MyTerminal
-  975  cd
-  976  cd Desktop/GITHUB/MyTerminal
-  977  cd
-  978  cd Desktop/GITHUB/MyTerminal
-  979  cat term
-  980  ls
-  981  cd
-  982  cd Desktop/GITHUB/MyTerminal
-  983  cd
-  984  cd Desktop/GITHUB/MyTerminal
-  985  cd
-  986  cd Desktop/GITHUB/MyTerminal
-  987  cat term
-  988  cd
-  989  cd Desktop/GITHUB/MyTerminal
-  990  cd
-  991  cd Desktop/GITHUB/MyTerminal
-  992  cd
-  993  cd Desktop/GITHUB/MyTerminal
-  994  cd
-  995  cd Desktop/GITHUB/MyTerminal
-  996  cd
-  997  cd Desktop/GITHUB/MyTerminal
-  998  cd
-  999  cd Desktop/GITHUB/MyTerminal
-  1000  cd
-  1001  cd Desktop/GITHUB/MyTerminal
-  1002  cd
-  1003  cd Desktop/GITHUB/MyTerminal
-  1004  cd
-  1005  cd Desktop/GITHUB/MyTerminal
-  1006  cd
-  1007  cd Desktop/GITHUB/MyTerminal
-  1008  cd
-  1009  cd Desktop/GITHUB/MyTerminal
-  1010  cd
-  1011  cd Desktop/GITHUB/MyTerminal
-  1012  cd
-  1013  cd Desktop/GITHUB/MyTerminal
-  1014  cd
-  1015  cd Desktop/GITHUB/MyTerminal
-  1016  cd
-  1017  cd Desktop/GITHUB/MyTerminal
-  1018  cd
-  1019  cd Desktop/GITHUB/MyTerminal
-  1020  cd
-  1021  cd Desktop/GITHUB/MyTerminal
-  1022  termgui
-  1023  cat termgui.cpp
-  1024  clear
-  1025  cat draw.cpp
-  1026  clear
-  1027  cd Desktop/GITHUB/MyTerminal
-  1028  cd
-  1029  cd Desktop/GITHUB/MyTerminal
-  1030  cd
-  1031  cd Desktop/GITHUB/MyTerminal
-  1032  cd
-  1033  cd Desktop/GITHUB/MyTerminal
-  1034  clear
-  1035  cat termgui.cpp
-  1036  clear
-  1037  cat draw.cpp
-  1038  clear
-  1039  cat termgui.o
-  1040  clear
-  1041  cd
-  1042  cd Desktop/GITHUB/MyTerminal
-  1043  cd
-  1044  cd Desktop/GITHUB/MyTerminal
-  1045  cd
-  1046  cd Desktop/GITHUB/MyTerminal
-  1047  cd
-  1048  cd Desktop/GITHUB/MyTerminal
-  1049  hvshvsi
-  1050  rendi
-  1051  cd
-  1052  cd Desktop/GITHUB/MyTerminal
-  1053  fvfvsfv\
-  1054  cd
-  1055  fvfvsfv\
-  1056  cd Desktop/GITHUB/MyTerminal
-  1057  cat draw.cpp
-  1058  clear
-  1059  cd
-  1060  cd Desktop/GITHUB/MyTerminal
-  1061  clear
-  1062  cd
-  1063  cd Desktop/GITHUB/MyTerminal
-  1064  cd
-  1065  cd Desktop/GITHUB/MyTerminal
-  1066  cd
-  1067  cd Desktop/GITHUB/MyTerminal
-  1068  cd
-  1069  ls
-  1070  cd
-  1071  cd Desktop/GITHUB/MyTerminal
-  1072  cd
-  1073  cd Desktop/GITHUB/MyTerminal
-  1074  cd
-  1075  cd Desktop/GITHUB/MyTerminal
-  1076  cd
-  1077  cd Desktop/GITHUB/MyTerminal
-  1078  cd
-  1079  cd Desktop/GITHUB/MyTerminal
-  1080  cd
-  1081  cd Desktop/GITHUB/MyTerminal
-  1082  cd
-  1083  cd Desktop/GITHUB/MyTerminal
-  1084  cd
-  1085  cd Desktop/GITHUB/MyTerminal
-  1086  cd
-  1087  cd Desktop/GITHUB/MyTerminal
-  1088  cd
-  1089  cd Desktop/GITHUB/MyTerminal
-  1090  cat term
-  1091  cd
-  1092  cd Desktop/GITHUB/MyTerminal
-  1093  cat termgui.cpp
-  1094  clear
-  1095  cd
-  1096  cd Desktop/GITHUB/MyTerminal
-  1097  cat termgui.o
-  1098  clear
-  1099  cd
-  1100  cd Desktop/GITHUB/MyTerminal
-  1101  cd
-  1102  cd Desktop/GITHUB/MyTerminal
-  1103  cd
-  1104  cd Desktop/GITHUB/MyTerminal
-  1105  cd
-  1106  cd Desktop/GITHUB/MyTerminal
-  1107  cd
-  1108  cd Desktop/GITHUB/MyTerminal
-  1109  cat draw.cpp
-  1110  cat term
-  1111  clear
-  1112  cat
-  1113  cd
-  1114  cd Desktop/GITHUB/MyTerminal
-  1115  cat termgui.cpp
-  1116  cd
-  1117  cat termgui.cpp
-  1118  cd Desktop/GITHUB/MyTerminal
-  1119  ./ termgui
-  1120  ./ termgui.o
-  1121  ./termgui.o
-  1122  ./termgui
-  1123  clear
-  1124  ./ termgui
-  1125  cd
-  1126  cd Desktop/GITHUB/MyTerminal
-  1127  cd
-  1128  cd Desktop/GITHUB/MyTerminal
-  1129  ./termgui
-  1130  ljvslvbs
-  1131  vsk
-  1132  ksnv
-  1133  clear
-  1134  ./termgui.o
-  1135  ./termgui
-  1136  cat helper_funcs.cpp
-  1137  cat termgui.oclear
-  1138  clear
-  1139  cd Desktop/GITHUB/MyTerminalclear
-  1140  clear
-  1141  ./termgui
-  1142  cd
-  1143  cd Desktop/GITHUB/MyTerminalclear
-  1144  cd Desktop/GITHUB/MyTerminal
-  1145  ./termgui
-  1146  cd /
-  1147  cd
-  1148  cd Desktop/GITHUB/MyTerminal
-  1149  cat termgui.cpp
-  1150  clear
-  1151  cd Desktop/GITHUB/MyTerminal
-  1152  ./termgui
-  1153  cd
-  1154  cd Desktop/GITHUB/MyTerminal
-  1155  ls
-  1156  ./all
-  1157  ls
-  1158  echo"ghud"
-  1159  echo "ghud"
-  1160  ls
-  1161  echo "ghud"
-  1162  cat termgui.cpp
-  1163  cd
-  1164  cd ..
-  1165  cd
-  1166  cd Desktop/GITHUB/MyTerminal
-  1167  gud bal
-  1168  echo "gud"
-  1169  echo "gud
-bal"
-  1170  echo "guwd"
-  1171  cd
-  1172  echo "guwd"
-  1173  cd Desktop/GITHUB/MyTerminal
-  1174  cd
-  1175  cd Desktop/GITHUB/MyTerminal
-  1176  clear
-  1177  ls
-  1178  g++ a.cpp
-  1179  ./a.out
-  1180  g++ a.cpp
-  1181  ./a.out
-  1182  cd
-  1183  cd Desktop/GITHUB/MyTerminal
-  1184  g++ a.cpp
-  1185  ./a.out
-  1186  cd
-  1187  cd Desktop/GITHUB/MyTerminal
-  1188  g++ a.cpp
-  1189  ./a.out
-  1190  cd
-  1191  cd Desktop/GITHUB/MyTerminal
-  1192  g++ a.cpp
-  1193  ./a.out
-  1194  cd
-  1195  clear
-  1196  g++ a.cpp
-  1197  cd
-  1198  cd Desktop/GITHUB/MyTerminal
-  1199  g++ a.cpp
-  1200  ./a.out
-  1201  cd
-  1202  cd Desktop/GITHUB/MyTerminal
-  1203  g++ a.cpp
-  1204  ./a.out
-  1205  cd
-  1206  cd Desktop/GITHUB/MyTerminal
-  1207  ./termgui
-  1208  cd
-  1209  cd Desktop/GITHUB/MyTerminal
-  1210  ./termgui
-  1211  cd
-  1212  cd Desktop/GITHUB/MyTerminal
-  1213  ls
-  1214  echo hello
-  1215  cd
-  1216  cd Desktop/GITHUB/MyTerminal
-  1217  ls
-  1218  cd
-  1219  cd Desktop/GITHUB/MyTerminal
-  1220  g++ a.cpp
-  1221  ./a.out
-  1222  cd
-  1223  cd Desktop/GITHUB/MyTerminal
-  1224  g++ a.cpp
-  1225  ./a.out
-  1226  g++ a.cpp
-  1227  ./a.out
-  1228  cd
-  1229  cd Desktop/GITHUB/MyTerminal
-  1230  g++ a.cpp
-  1231  ./a.out
-  1232  cd
-  1233  cd Desktop/GITHUB/MyTerminal
-  1234  cd
-  1235  cd Desktop/GITHUB/MyTerminal
-  1236  clear
-  1237  Desktop/GITHUB/MyTerminal
-  1238  cd
-  1239  Desktop/GITHUB/MyTerminal
-  1240  cd Desktop/GITHUB/MyTerminal
-  1241  clear
-  1242  cd
-  1243  cd Desktop/GITHUB/MyTerminal
-  1244  clear
-  1245  cd ..
-  1246  cd
-  1247  cd Desktop/GITHUB/MyTerminal
-  1248  multiwatch [ "ls", "ls -l", "ls -al" ]
-  1249  multiWatch [ "ls", "ls -l", "ls -al" ]
-  1250  cd
-  1251  cd Desktop/GITHUB/MyTerminal
-  1252  multiWatch [ "ls", "ls -l", "ls -al" ]
-  1253  cd
-  1254  cd Desktop/GITHUB/MyTerminal
-  1255  clear
-  1256  cd
-  1257  cd Desktop/GITHUB/MyTerminal
-  1258  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1259  clear
-  1260  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1261  cwd
-  1262  pwd
-  1263  cwd
-  1264  pwd
-  1265  ls -l
-  1266  ls
-  1267  sls
-  1268  ls
-  1269  l
-  1270  sls
-  1271  pwd
-  1272  cd
-  1273  cd Desktop/GITHUB/MyTerminal
-  1274  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1275  ls
-  1276  cd
-  1277  cd Desktop/GITHUB/MyTerminal
-  1278  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1279  clear
-  1280  cd
-  1281  cd Desktop/GITHUB/MyTerminal
-  1282  ls
-  1283  cat designDoc.txt
-  1284  cat draw.cpp
-  1285  clear
-  1286  echo hello
-  1287  cd
-  1288  cd Desktop/GITHUB/MyTerminal
-  1289  clear
-  1290  echo hello
-  1291  clear
-  1292  cd
-  1293  cd Desktop/GITHUB/MyTerminal
-  1294  cd
-  1295  cd Desktop/GITHUB/MyTerminal
-  1296  cd
-  1297  cd Desktop/GITHUB/MyTerminal
-  1298  cd
-  1299  cd Desktop/GITHUB/MyTerminal
-  1300  cd
-  1301  cd Desktop/GITHUB/MyTerminal
-  1302  designDoc.txt
-  1303  cd
-  1304  cd Desktop/GITHUB/MyTerminal
-  1305  ./termgui /home/shreyan10
-  1306  cd
-  1307  cd Desktop/GITHUB/MyTerminal
-  1308  designDoc.txt
-  1309  echo hello
-  1310  cd
-  1311  designDoc.txt
-  1312  cd Desktop/GITHUB/MyTerminal
-  1313  designDoc.txt
-  1314  cat termgui.cpp
-  1315  clear
-  1316  cd
-  1317  cd Desktop/GITHUB/MyTerminal
-  1318  cd
-  1319  cd Desktop/GITHUB/MyTerminal
-  1320  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1321  clear
-  1322  cd
-  1323  cd Desktop/GITHUB/MyTerminal
-  1324  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1325  clear
-  1326  cd
-  1327  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1328  cd
-  1329  cd Desktop/GITHUB/MyTerminal
-  1330  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1331  cd Desktop/GITHUB/MyTerminal
-  1332  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1333  clear
-  1334  cd
-  1335  cd Desktop/GITHUB/MyTerminal
-  1336  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1337  echo "gud
-
-bal"
-  1338  cd
-  1339  cd Desktop/GITHUB/MyTerminal
-  1340  sort < designDoc.txt
-  1341  clear
-  1342  sort < input_log.txt
-  1343  sort < designDoc.txt
-  1344  clear
-  1345  touch a.txt
-  1346  sort < input_log.txt > a.txt
-  1347  cat a.txt
-  1348  clear
-  1349  ls
-  1350  clear
-  1351  cat all.cpp | sort | more
-  1352  clear
-  1353  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1354  clear
-  1355  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1356  ls
-  1357  multiWatch [ "echo bara", "echo gud", "echo bal" ]
-  1358  ls
+  970  LANG=hi_IN.UTF-8 ./multitab
+  971  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  972  LANG=hi_IN.UTF-8 ./multitab
+  973  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  974  LANG=hi_IN.UTF-8 ./multitab
+  975  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  976  LANG=hi_IN.UTF-8 ./multitab
+  977  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  978  sudo apt update
+  979  sudo apt install libxft-dev libfreetype6-dev
+  980  clear
+  981  g++ -std=c++17 withunial.cpp -o multitab -lX11 -pthread
+  982  cd
+  983  cd Desktop/GITHUB/
+  984  mkdir try
+  985  cd try
+  986  touch try.cpp
+  987  code .
+  988  cd ..
+  989  ls
+  990  cd Desktop/GITHUB/
+  991  cd MyTerminal
+  992  code .
+  993  ls /usr/include/freetype2/ft2build.h
+  994  sudo apt install --reinstall libfreetype6-dev
+  995  clear
+  996  g++ -std=c++17 withunial.cpp -o multitab -lX11 -lXft -lfontconfig -pthread -I/usr/include/freetype2
+  997  ./multitab
+  998  sudo apt install fonts-noto-core
+  999  g++ -std=c++17 withunial.cpp -o multitab -lX11 -lXft -lfontconfig -pthread -I/usr/include/freetype2
+ 1000  ./multitab
+ 1001  g++ -std=c++17 withunial.cpp -o multitab -lX11 -lXft -lfontconfig -pthread -I/usr/include/freetype2
+ 1002  ./multitab
+ 1003  sudo apt install fonts-noto-core fonts-noto-color-emoji fonts-deva fonts-dejavu-core
+ 1004  export LANG=hi_IN.UTF-8
+ 1005  export LC_ALL=hi_IN.UTF-8
+ 1006  sudo locale-gen hi_IN.UTF-8
+ 1007  locale -a
+ 1008  g++ -std=c++17 withunial.cpp -o multitab -lX11 -lXft -lfontconfig -pthread -I/usr/include/freetype2
+ 1009  LANG=hi_IN.utf8 LC_ALL=hi_IN.utf8 ./multitab
+ 1010  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1011  ./all
+ 1012  clear
+ 1013  ./all
+ 1014  git status
+ 1015  clear
+ 1016  g++ -std=c++17 allasync.cpp -o asy -lX11 -pthread
+ 1017  ./asy
+ 1018  g++ -std=c++17 allasync.cpp -o asy -lX11 -pthread
+ 1019  ./asy
+ 1020  g++ -std=c++17 allasync.cpp -o asy -lX11 -pthread
+ 1021  ./asy
+ 1022  g++ -std=c++17 allasync.cpp -o asy -lX11 -pthread
+ 1023  g++ -std=c++17 allasync.cpp -o allasync -lX11 -pthread
+ 1024  clear
+ 1025  g++ -std=c++17 allasync.cpp -o async -lX11 -pthread
+ 1026  ./async
+ 1027  g++ -std=c++17 allasync.cpp -o allasync -lX11 -pthread
+ 1028  ./allsasync
+ 1029  ./allasync
+ 1030  make
+ 1031  clear
+ 1032  make
+ 1033  clear
+ 1034  make
+ 1035  ./termgui 
+ 1036  make
+ 1037  ./termgui 
+ 1038  cd Desktop/
+ 1039  cd GITHUB/
+ 1040  ls
+ 1041  cd MyTerminal
+ 1042  ls
+ 1043  code .
+ 1044  cat exec.cpp 
+ 1045  clear
+ 1046  code .
+ 1047  g++ -std=c++17 multitab.cpp -o multitab -lX11 -pthread
+ 1048  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1049  ./all
+ 1050  make
+ 1051  ./ termgui
+ 1052  ./termgui
+ 1053  make
+ 1054  ./termgui
+ 1055  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1056  clear
+ 1057  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1058  ./all
+ 1059  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1060  ./all
+ 1061  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1062  ./all
+ 1063  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1064  ./all
+ 1065  g++ -std=c++17 all.cpp -o all -lX11 -pthread
+ 1066  ./all
+ 1067  make
+ 1068  ./termgui
+ 1069  ./termgui /home/shreyan10/Desktop/GITHUB/MyTerminal/paths.txt
+ 1070  make
+ 1071  ./termgui /home/shreyan10/Desktop/GITHUB/MyTerminal/paths.txt
+ 1072  make
+ 1073  ./termgui /home/shreyan10/Desktop/GITHUB/MyTerminal/paths.txt
+ 1074  make
+ 1075  ./termgui /home/shreyan10/Desktop/GITHUB/MyTerminal/paths.txt
+ 1076  make
+ 1077  ./termgui /home/shreyan10/Desktop/GITHUB/MyTerminal/paths.txt
+ 1078  clear
+ 1079  make
+ 1080  ./termgui /home/shreyan10/Desktop/GITHUB/MyTerminal/paths.txt
+ 1081  ./termgui /home/shreyan10
+ 1082  make
+ 1083  ./termgui /home/shreyan10
+ 1084  ./termgui /home/shreyan10/Desktop/computing_lab_p1./computing_lab_p1/MyTerminal/paths.txt
+ 1085  git clone 
+ 1086  clear
