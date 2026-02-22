@@ -120,7 +120,3 @@ multiWatch ["cmd1", "cmd2", "cmd3"]
 ```bash
 make clean
 ```
-
-## License
-
-No license file is currently included in this repository.
