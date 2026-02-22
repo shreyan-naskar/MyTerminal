@@ -1,84 +1,126 @@
-# Project: MyTerm - A Custom Terminal with X11GUI
+# MyTerminal
 
-A shell that will run as a standalone application program. The shell will accept user
-commands (one line at a time), and execute the same.
+A lightweight graphical terminal emulator built in C++ with X11.
 
----
+`MyTerminal` provides a custom terminal UI with tabbed sessions, shell command execution, command history, autocomplete, and a live multi-command watcher mode.
 
-## Functionalities Implemented : 
+## Highlights
 
-> **Graphical User Interface -**
-- Designed using X11
-- Handles keyboard inputs for all keys and typical key combinations
-- Multiple independently running Tabs can be spawned and switched between themselves: Alt + Tab & Alt + Shift + Tab or through UI buttons
+- X11-based terminal window with custom-rendered UI
+- Multiple tabs with independent working directories
+- Shell command execution via `bash -c`
+- Pipeline and redirection support (`|`, `<`, `>`)
+- Command history persistence (`input_log.txt`)
+- Reverse history search (`Ctrl+R`)
+- Filename autocomplete (`Tab`)
+- Clipboard paste (`Ctrl+V`)
+- `multiWatch` mode for repeatedly displaying outputs from multiple commands
+- Scrollback + keyboard and mouse navigation
 
-> **Run an external command -**
-- Execute typical linux commands as on bash terminal
-- For example: `ls`, `ls -l`, `ls -al`, `cd ..` and so on
+## Tech Stack
 
-> **Take multiline unicode input -**
-- Multiline inputs are supported with the use of ".
-- For Example:
-  ```bash
-  echo "Hello
-  World"
-- **Note:** Unicode inputs can not be displayed.
+- Language: C++
+- Windowing: X11 (`Xlib`)
+- Process control: `fork`, `exec`, `pipe`, `poll`, `waitpid`
+- Build: `make` + `g++`
 
-> **Run an external command by redirecting standard input from a file -** 
-- Use `<` for input redirection.
-- For example: `./a.out < input.txt`, `sort < somefile.txt` and so on
+## Repository Layout
 
-> **Run an external command by redirecting standard output to a file -**
-- Use `>` for output redirection.
-- For example: `./a.out > outfile.txt`, `ls > abc` and so on.
-- Supports combination of input and output redirection.
-- For example: `./a.out < infile.txt > outfile.txt` and so on.
+- `termgui.cpp`: entry point and X display setup
+- `run.cpp`: event loop, keyboard/mouse handling, interaction flow
+- `draw.cpp`: window drawing, tab UI, screen rendering
+- `exec.cpp`: command execution, pipelines, per-tab cwd logic, `multiWatch`
+- `helper_funcs.cpp`: history, search, and autocomplete helpers
+- `headers.cpp`: includes and shared dependencies
+- `input_log.txt`: persisted command history
+- `Makefile`: build instructions
 
-> **Pipe Support -**
-- Use symbol `|` to indicate pipe mode of execution.
-- For example: `ls *.txt | wc -l`, `cat abc.c | sort | more`, `ls *.txt | xargs rm` and so on.
+## Prerequisites
 
-> **A new command "multiWatch" -**
-- **Command:** `multiWatch ["cmd1", "cmd2", "cmd3",...]`
-- Starts executing cmd1, cmd2, cmd3... parallelly with multiple processes.
-- Execution ends after receiving Ctrl+C from the user.
-- For example: `multiWatch [ "echo Hello", "ls", "cat a.txt" ]`
+Linux environment with X11 development/runtime available:
 
-> **Line Navigation with Ctrl+A and Ctrl+E -**
-- Pressing Ctrl+A moves the cursor to the start of the current line.
--​ Pressing Ctrl+E moves the cursor to the end of the current line.
+- `g++`
+- `make`
+- `libX11` (headers + runtime)
+- `bash`
 
-> **Interrupting commands running in your shell (using signal call) -** 
-- **Note:** Cound not be implemented.
-
-> **A searchable shell history -**
-- Maintains a history of the last 10000 commands run in shell.
-- Command "history” which will show the most recent 1000 commands.
-- To search press "Ctrl+r”, you will be prompted eith "Enter search term”. T
-- Takes a string as an input from the user.
-
-> **Implementing auto-complete feature for file names -**
-- An auto-complete feature for the shell for the file names in the working directory of the shell.
-- Write the first few letters of a file (in the same directory where the shell is running) and press Tab key.
-
-## Bonus Functionalities Implemented :
-
-- **Paste into the terminal from clipboard: "Ctrl + V" to paste single or multiline inputs.**
-- **Up and Down arrow for previous inputs just like bash terminal.**
-- **Right and Left arrow keys to edit in between already typed inputs**
-- **Colour coding: Red - Errors, Yellow: Search History, Autocomplete, Green: Default Prompt ( eg: shre@Term$:)**
-
----
-
-## 📦 Dependency Installation & opening shreTerm 
-
-Copy and paste this in bash terminal
+Example (Debian/Ubuntu):
 
 ```bash
-# execute the Makefile
+sudo apt update
+sudo apt install -y build-essential libx11-dev bash
+```
+
+## Build
+
+```bash
 make
+```
 
-# execute the .exe file with the command line arguement like /home/<user-name>
-# for example: ./termgui /home/shreyan10
-./termgui /home/<user-name>
+This produces the executable: `./termgui`.
 
+## Run
+
+```bash
+./termgui /home/<your-user>
+```
+
+Example:
+
+```bash
+./termgui /home/shreyan
+```
+
+The startup path argument is currently expected by the program and is used for prompt path formatting.
+
+## Usage
+
+### Tab Management
+
+- Click `+` to open a new tab
+- Click tab `x` to close a tab
+- Click a tab to switch
+- `Ctrl+Tab`: next tab
+- `Ctrl+Shift+Tab`: previous tab
+- `Esc`: close current tab (or exit when only one tab remains)
+
+### Editing and Navigation
+
+- `Left` / `Right`: move cursor in input
+- `Up` / `Down`: navigate command history
+- `Ctrl+A`: move cursor to start of input
+- `Ctrl+E`: move cursor to end of input
+- `Ctrl+V`: paste clipboard text
+- Mouse wheel / `PageUp` / `PageDown`: scroll output
+
+### History and Autocomplete
+
+- `history`: print stored command history
+- `Ctrl+R`: search history
+- `Tab`: autocomplete file/path candidates in current tab directory
+
+### Multi-command Watch Mode
+
+```bash
+multiWatch ["cmd1", "cmd2", "cmd3"]
+```
+
+- Re-runs commands periodically and refreshes output
+- Stop with `Ctrl+C`
+
+## Notes and Current Limitations
+
+- Target platform is Linux with X11 (not native Windows terminal behavior).
+- Input rendering path is mostly single-byte oriented in parts of the UI; some Unicode scenarios may not render perfectly.
+- The command parser is intentionally simple; complex shell quoting edge cases may behave differently than a full terminal emulator.
+- The initial path argument is required by current startup code.
+
+## Clean
+
+```bash
+make clean
+```
+
+## License
+
+No license file is currently included in this repository.
